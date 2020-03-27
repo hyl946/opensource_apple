@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>OpenSourceProject</key>
+	<string>apache</string>
+	<key>OpenSourceVersion</key>
+	<string>2.4.41</string>
+	<key>OpenSourceWebsiteURL</key>
+	<string>http://httpd.apache.org/</string>
+	<key>OriginalOpenSourceURL</key>
+	<string>http://www.apache.org/dist/httpd/httpd-2.4.41.tar.bz2</string>
+	<key>OriginalOpenSourceSHA1</key>
+	<string>b46a02237f03384fa50ddbde9be62092dc23e684</string>
+	<key>OpenSourceImportDate</key>
+	<string>2019-8-15</string>
+	<key>OpenSourceModifications</key>
+	<array>
+               <string>Removed GPLv3 bison-generated parsers</string>
+               <string>Patch mod_ssl for SSLOptions LegacyCertChainVerify</string>
+               <string>Removed unneeded binary apache.xdc</string>
+	</array>
+	<key>OpenSourceSHA1</key>
+ 	<string>75695bb7bb589c308755bf496de8b34522133865</string>
+	<key>OpenSourceMD5</key>
+ 	<string>930e217ba2d71e708a3f1521ecae7ec0</string>
+	<key>OpenSourceLicense</key>
+	<string>Apache</string>
+	<key>OpenSourceLicenseFile</key>
+	<string>apache.txt</string>
+</dict>
+</plist>
