@@ -1,0 +1,17 @@
+﻿// ***************************************************************************
+// *
+// * Copyright (C) 2015 International Business Machines
+// * Corporation and others. All Rights Reserved.
+// * Tool: org.unicode.cldr.icu.NewLdml2IcuConverter
+// * Source File: <path>/common/main/tg.xml
+// *
+// ***************************************************************************
+tg{
+    Currencies{
+        TJS{
+            "сом",
+            "Сомонӣ",
+        }
+    }
+    Version{"2.1.19.94"}
+}

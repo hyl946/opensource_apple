@@ -1,0 +1,24 @@
+﻿// ***************************************************************************
+// *
+// * Copyright (C) 2016 International Business Machines
+// * Corporation and others. All Rights Reserved.
+// * Tool: org.unicode.cldr.icu.NewLdml2IcuConverter
+// * Source File: <path>/common/main/fr_GF.xml
+// *
+// ***************************************************************************
+fr_GF{
+    Version{"2.1.19.14"}
+    zoneStrings{
+        "meta:Brasilia"{
+            sd{"BRST"}
+            sg{"BRT"}
+            ss{"BRT"}
+        }
+        "meta:French_Guiana"{
+            ss{"GFT"}
+        }
+        "meta:Suriname"{
+            ss{"SRT"}
+        }
+    }
+}

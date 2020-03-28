@@ -1,0 +1,22 @@
+--- icuSources/common/unicode/uconfig.h	2009-07-31 21:51:57.000000000 -0700
++++ build/common/unicode/uconfig.h	2010-04-21 09:29:11.000000000 -0700
+@@ -225,7 +225,7 @@
+  * @stable ICU 3.2
+  */
+ #ifndef UCONFIG_NO_SERVICE
+-#   define UCONFIG_NO_SERVICE 0
++#   define UCONFIG_NO_SERVICE 1
+ #endif
+ 
+ #endif
+--- icuSources/common/unicode/utypes.h	2010-03-11 20:47:35.000000000 -0800
++++ build/common/unicode/utypes.h	2010-04-21 13:49:00.000000000 -0700
+@@ -234,7 +234,7 @@
+  */
+ #define U_ICUDATA_NAME    "icudt" U_ICU_VERSION_SHORT U_ICUDATA_TYPE_LETTER  /**< @internal */
+ #define U_USRDATA_NAME    "usrdt" U_ICU_VERSION_SHORT U_ICUDATA_TYPE_LETTER  /**< @internal */
+-#define U_USE_USRDATA     1  /**< @internal */
++#define U_USE_USRDATA     0  /**< @internal */
+ 
+ /**
+  *  U_ICU_ENTRY_POINT is the name of the DLL entry point to the ICU data library.

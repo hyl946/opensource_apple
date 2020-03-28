@@ -1,0 +1,46 @@
+--- ./common/unicode/uconfig.h	2016-03-19 21:18:39.000000000 -0700
++++ ./common/unicode/uconfig.h	2016-03-29 15:23:56.000000000 -0700
+@@ -87,7 +87,7 @@
+  * @internal
+  */
+ #ifndef U_DISABLE_RENAMING
+-#define U_DISABLE_RENAMING 0
++#define U_DISABLE_RENAMING 1
+ #endif
+ 
+ /**
+@@ -413,7 +413,7 @@
+  * @stable ICU 3.2
+  */
+ #ifndef UCONFIG_NO_SERVICE
+-#   define UCONFIG_NO_SERVICE 0
++#   define UCONFIG_NO_SERVICE 1
+ #endif
+ 
+ /**
+--- ./common/unicode/udata.h	2016-03-10 15:38:06.000000000 -0800
++++ ./common/unicode/udata.h	2016-03-29 15:23:07.000000000 -0700
+@@ -399,10 +399,10 @@
+ typedef enum UDataFileAccess {
+     /** ICU looks for data in single files first, then in packages. (default) @stable ICU 3.4 */
+     UDATA_FILES_FIRST,
+-    /** An alias for the default access mode. @stable ICU 3.4 */
+-    UDATA_DEFAULT_ACCESS = UDATA_FILES_FIRST,
+     /** ICU only loads data from packages, not from single files. @stable ICU 3.4 */
+     UDATA_ONLY_PACKAGES,
++    /** An alias for the default access mode. @stable ICU 3.4 */
++    UDATA_DEFAULT_ACCESS = UDATA_ONLY_PACKAGES,
+     /** ICU loads data from packages first, and only from single files
+         if the data cannot be found in a package. @stable ICU 3.4 */
+     UDATA_PACKAGES_FIRST,
+--- ./common/unicode/utypes.h	2016-04-20 14:47:56.000000000 -0700
++++ ./common/unicode/utypes.h	2016-04-20 14:52:41.000000000 -0700
+@@ -61,7 +61,7 @@
+  */
+ #ifdef __cplusplus
+ #   ifndef U_SHOW_CPLUSPLUS_API
+-#       define U_SHOW_CPLUSPLUS_API 1
++#       define U_SHOW_CPLUSPLUS_API 0
+ #   endif
+ #else
+ #   undef U_SHOW_CPLUSPLUS_API
