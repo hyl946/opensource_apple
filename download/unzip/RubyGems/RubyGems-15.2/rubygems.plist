@@ -1,0 +1,25 @@
+<plist version="1.0">
+<array>
+<dict>
+        <key>OpenSourceProject</key>
+        <string>RubyGems</string>
+        <key>OpenSourceVersion</key>
+        <string>1.0.1</string>
+        <key>OpenSourceWebsiteURL</key>
+        <string>http://docs.rubygems.org/</string>
+        <key>OpenSourceURL</key>
+        <string>http://rubyforge.org/frs/download.php/29548/rubygems-1.0.1.tgz</string>
+        <key>OpenSourceSHA1</key>
+        <string>232750fa59917ea9baf03797fdb10a22d29ebad9</string>
+        <key>OpenSourceImportDate</key>
+        <string>2007-12-22</string>
+        <key>OpenSourceLicense</key>
+        <string>Other</string>
+        <key>OpenSourceLicenseFile</key>
+        <string>rubygems.txt</string>
+	<key>OpenSourceModifications</key>
+	<array>
+	</array>
+</dict>
+</array>
+</plist>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>OpenSourceImportDate</key>
+	<string>2016-12-01</string>
+	<key>OpenSourceLicense</key>
+	<string>ruby</string>
+	<key>OpenSourceLicenseFile</key>
+	<string>ruby.txt</string>
+	<key>OpenSourceModifications</key>
+	<array>
+		<string>disable -static in rbconfig</string>
+		<string>Use SDKROOT / xcrun to find set RbConfig::CONFIG["includedir"]</string>
+		<string>Change default bindir for gems to /usr/local/bin</string>
+		<string>Include/Link with LibreSSL</string>
+	</array>
+	<key>OpenSourceProject</key>
+	<string>ruby</string>
+	<key>OpenSourceSHA256</key>
+	<string>73dd6ed896ff52d953b153b2cab359c87953ea77521878f1ee16c1e217cc46bcb253100debe61ba631e6ffa0bc773e592d603a374508ed5189a311136ccd8d20</string>
+	<key>OpenSourceURL</key>
+	<string>https://cache.ruby-lang.org/pub/ruby/2.3/ruby-2.3.3.tar.xz</string>
+	<key>OpenSourceVersion</key>
+	<string>2.3.3</string>
+	<key>OpenSourceWebsiteURL</key>
+	<string>http://www.ruby-lang.org/</string>
+</dict>
+</plist>
