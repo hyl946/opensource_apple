@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+	<key>DHCPAcceptsBOOTP</key>
+	<false/>
+	<key>DHCPInitRebootRetryCount</key>
+	<integer>2</integer>
+	<key>DHCPAllocateLinkLocalAtRetryCount</key>
+	<integer>2</integer>
+	<key>DHCPFailureConfiguresLinkLocal</key>
+	<true/>
+	<key>DHCPSuccessDeconfiguresLinkLocal</key>
+	<true/>
+	<key>DHCPRequestedParameterList</key>
+	<array>
+		<integer>1</integer>
+		<integer>3</integer>
+		<integer>6</integer>
+		<integer>15</integer>
+		<integer>112</integer>
+		<integer>113</integer>
+		<integer>78</integer>
+		<integer>79</integer>
+		<integer>95</integer>
+	</array>
+	<key>GatherTimeSeconds</key>
+	<integer>1</integer>
+	<key>LinkInactiveWaitTimeSeconds</key>
+	<integer>4</integer>
+	<key>RetryCount</key>
+	<integer>9</integer>
+	<key>InitialRetryTimeSeconds</key>
+	<integer>1</integer>
+	<key>MaximumRetryTimeSeconds</key>
+	<integer>8</integer>
+	<key>ARPProbeCount</key>
+	<integer>4</integer>
+	<key>ARPGratuitousCount</key>
+	<integer>1</integer>
+	<key>ARPRetryTimeSeconds</key>
+	<real>0.3</real>
+	<key>MustBroadcast</key>
+	<false/>
+	<key>Verbose</key>
+	<false/>
+</dict>
+</plist>
