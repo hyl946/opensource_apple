@@ -1,0 +1,4 @@
+
+#include "Heimdal.xcconfig"
+
+SUPPORTED_PLATFORMS = macosx iphoneos iphonesimulator
