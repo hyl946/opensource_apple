@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>OpenSourceImportDate</key>
+		<string>2017-06-15</string>
+		<key>OpenSourceLicense</key>
+		<string>Uganda</string>
+		<key>OpenSourceLicenseFile</key>
+		<string>vim.txt</string>
+		<key>OpenSourceProject</key>
+		<string>vim</string>
+		<key>OpenSourceSCM</key>
+		<string>git clone https://github.com/vim/vim; git checkout 8cf91286ca46a501d24e4b7d631b193256782c88</string>
+		<key>OpenSourceVersion</key>
+		<string>8.0.0642</string>
+		<key>OpenSourceWebsiteURL</key>
+		<string>http://www.vim.org/</string>
+		<key>OpenSourceModifications</key>
+		<array>
+			<string>33440987 - revert patch 504</string>
+		</array>
+	</dict>
+</array>
+</plist>
