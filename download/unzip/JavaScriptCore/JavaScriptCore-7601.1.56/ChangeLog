@@ -1,0 +1,118 @@
+2015-08-27  Matthew Hanson  <matthew_hanson@apple.com>
+
+        Merge r189012. rdar://problem/22084478
+
+    2015-08-26  Saam barati  <sbarati@apple.com>
+
+            MarkedBlock::allocateBlock will have the wrong allocation size when (sizeof(MarkedBlock) + bytes) is divisible by WTF::pageSize()
+            https://bugs.webkit.org/show_bug.cgi?id=148500
+
+            Reviewed by Mark Lam.
+
+            Consider the following scenario:
+            - On OS X, WTF::pageSize() is 4*1024 bytes.
+            - JSEnvironmentRecord::allocationSizeForScopeSize(6621) == 53000
+            - sizeof(MarkedBlock) == 248
+            - (248 + 53000) is a multiple of 4*1024.
+            - (248 + 53000)/(4*1024) == 13
+
+            We will allocate a chunk of memory of size 53248 bytes that looks like this:
+            0            248       256                       53248       53256
+            [Marked Block | 8 bytes |  payload     ......      ]  8 bytes  |
+                                    ^                                      ^
+                               Our Environment record starts here.         ^
+                                                                           ^
+                                                                     Our last JSValue in the environment record will go from byte 53248 to 53256. But, we don't own this memory.
+
+            We need to ensure that we round up sizeof(MarkedBlock) to an
+            atomSize boundary. We need to do this because the first atom
+            inside the MarkedBlock will start at the rounded up multiple
+            of atomSize past MarkedBlock. If we end up with an allocation
+            that is perfectly aligned to the page size, then we will be short
+            8 bytes (in the current implementation where atomSize is 16 bytes,
+            and MarkedBlock is 248 bytes).
+
+            * heap/MarkedAllocator.cpp:
+            (JSC::MarkedAllocator::allocateBlock):
+            * tests/stress/heap-allocator-allocates-incorrect-size-for-activation.js: Added.
+            (use):
+            (makeFunction):
+
+2015-07-31  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r187579
+
+    2015-07-29  Filip Pizlo  <fpizlo@apple.com>
+
+            DFG::ArgumentsEliminationPhase should emit a PutStack for all of the GetStacks that the ByteCodeParser emitted
+            https://bugs.webkit.org/show_bug.cgi?id=147433
+            rdar://problem/21668986
+
+            Reviewed by Mark Lam.
+
+            Ideally, the ByteCodeParser would only emit SetArgument nodes for named arguments.  But
+            currently that's not what it does - it emits a SetArgument for every argument that a varargs
+            call may pass.  Each SetArgument gets turned into a GetStack.  This means that if
+            ArgumentsEliminationPhase optimizes away PutStacks for those varargs arguments that didn't
+            get passed or used, we get degenerate IR where we have a GetStack of something that didn't
+            have a PutStack.
+
+            This fixes the bug by removing the code to optimize away PutStacks in
+            ArgumentsEliminationPhase.
+
+            * dfg/DFGArgumentsEliminationPhase.cpp:
+            * tests/stress/varargs-inlining-underflow.js: Added.
+            (baz):
+            (bar):
+            (foo):
+
+2015-07-24  Matthew Hanson  <matthew_hanson@apple.com>
+
+        Merge r187139. rdar://problem/21847618
+
+    2015-07-21  Filip Pizlo  <fpizlo@apple.com>
+
+            Unreviewed, fix a lot of tests. Need to initialize WTF threading sooner.
+
+            * jsc.cpp:
+            (main):
+
+2015-07-23  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r187125
+
+    2015-07-21  Filip Pizlo  <fpizlo@apple.com>
+
+            Fixed VM pool allocation should have a reserve for allocations that cannot fail
+            https://bugs.webkit.org/show_bug.cgi?id=147154
+            rdar://problem/21847618
+
+            Reviewed by Geoffrey Garen.
+
+            This adds the notion of a JIT pool reserve fraction. Some fraction, currently 1/4, of
+            the JIT pool is reserved for allocations that cannot fail. It makes sense to make this
+            a fraction rather than a constant because each allocation that can fail may cause some
+            number of allocations that cannot fail (for example, the OSR exit thunks that we
+            compile when we exit from some CodeBlock cannot fail).
+
+            I've tested this by adding a test mode where we artificially limit the JIT pool size.
+            Prior to the fix, we had >20 failures. Now we have none.
+
+            * heap/GCLogging.cpp:
+            (WTF::printInternal): I needed a dump method on Options members when debugging this.
+            * heap/GCLogging.h:
+            * jit/ExecutableAllocator.h: Raise the ARM64 limit to 32MB because 16MB is cutting it too close.
+            * jit/ExecutableAllocatorFixedVMPool.cpp:
+            (JSC::FixedVMPoolExecutableAllocator::FixedVMPoolExecutableAllocator): Add the ability to artificially limit JIT pool size for testing.
+            (JSC::ExecutableAllocator::memoryPressureMultiplier): Implement the reserve when computing memory pressure for JIT tier-up heuristics.
+            (JSC::ExecutableAllocator::allocate): Implement the reserve when allocating can-fail things.
+            * jsc.cpp: Rewire some options parsing so that CommandLine happens before we create the JIT pool.
+            (main):
+            (CommandLine::parseArguments):
+            (jscmain):
+            * runtime/Options.cpp: 
+            (JSC::OptionRange::dump): I needed a dump method on Options members when debugging this.
+            (JSC::Options::initialize): This can now be called more than once.
+            * runtime/Options.h:
+
+== Rolled over to ChangeLog-2015-07-23 ==
