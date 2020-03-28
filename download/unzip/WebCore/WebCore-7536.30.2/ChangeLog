@@ -1,0 +1,2277 @@
+2012-12-13  Lucas Forschler  <lforschler@apple.com>
+
+    Rollout r145656
+
+2013-04-16  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge r125955.
+
+    2012-08-17  Alice Cheng  <alice_cheng@apple.com>
+
+            Preserve styling elements in DeleteSelectionCommand
+            <rdar://problem/12040676>
+            https://bugs.webkit.org/show_bug.cgi?id=93643
+
+            Reviewed by Ryosuke Niwa.
+
+            Styling elements (<link> and <style>) can appear inside editable content. To 
+            prevent accidental deletion, we move styling elements to rootEditableElement in
+            DeleteSelectionCommand undoably.
+
+            Test: editing/execCommand/delete-selection-has-style.html
+
+            * editing/DeleteSelectionCommand.cpp:
+            (WebCore::DeleteSelectionCommand::makeStylingElementsDirectChildrenOfEditableRootToPreventStyleLoss): Added to preserve styling elements during the command
+            (WebCore::DeleteSelectionCommand::handleGeneralDelete):  Modified to preserve styling elements during the command
+            * editing/DeleteSelectionCommand.h:
+            (DeleteSelectionCommand):
+
+2013-04-16  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r130313
+
+    2012-10-03  Adam Barth  <abarth@webkit.org>
+
+            Crash when calling document.open during unload
+            https://bugs.webkit.org/show_bug.cgi?id=98287
+
+            Reviewed by Nate Chapin.
+
+            Calling document.open results in us nulling out m_documentLoader. This
+            code doesn't properly handle that case and crashes.
+
+            Test: fast/parser/document-open-in-unload.html
+
+            * loader/FrameLoader.cpp:
+            (WebCore::FrameLoader::commitProvisionalLoad):
+
+2013-04-16  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r147938
+
+    2013-04-08  Alexey Proskuryakov  <ap@apple.com>
+
+            <rdar://problem/12834449> Crashes in WebSocketChannel::processFrame when processing a ping
+            https://bugs.webkit.org/show_bug.cgi?id=114178
+
+            Reviewed by Brady Eidson.
+
+            No test, I could never reproduce even manually.
+
+            Calling enqueueRawFrame() could change incoming buffer, so a subsequent skipBuffer()
+            would operate on wrong assumptions. This happened because enqueueRawFrame() actually
+            tried to process the queue, and send failure sometimed clears m_buffer.
+
+            Fixing this by decoupling enqueuing from sending, and making sure that skipBuffer()
+            in ping frame processing case is performed at a safe time.
+
+            * Modules/websockets/WebSocketChannel.cpp:
+            (WebCore::WebSocketChannel::send):
+            (WebCore::WebSocketChannel::startClosingHandshake):
+            (WebCore::WebSocketChannel::processFrame):
+            (WebCore::WebSocketChannel::enqueueTextFrame):
+            (WebCore::WebSocketChannel::enqueueRawFrame):
+            (WebCore::WebSocketChannel::enqueueBlobFrame):
+
+2013-04-16  Andy Estes  <aestes@apple.com>
+
+        Merged r142631.
+
+    2013-02-12  Dominic Mazzoni  <dmazzoni@google.com>
+
+        ASSERTION FAILED: i < size(), UNKNOWN in WebCore::AccessibilityMenuListPopup::didUpdateActiveOption
+        https://bugs.webkit.org/show_bug.cgi?id=109452
+
+        Reviewed by Chris Fleizach.
+
+        Send the accessibility childrenChanged notification in
+        HTMLSelectElement::setRecalcListItems instead of in childrenChanged
+        so that all possible codepaths are caught.
+
+        Test: accessibility/insert-selected-option-into-select-causes-crash.html
+
+        * html/HTMLSelectElement.cpp:
+        (WebCore::HTMLSelectElement::childrenChanged):
+        (WebCore::HTMLSelectElement::setRecalcListItems):
+
+2013-04-15  Andy Estes  <aestes@apple.com>
+
+        Merged r139444.
+
+    2013-01-11  Stephen Chenney  <schenney@chromium.org>
+        Objects can be re-added to the AXObjectCache during removal
+        https://bugs.webkit.org/show_bug.cgi?id=104171
+
+        The problem occurs when a label's corresponding element is a sibling
+        that precedes it in the render tree, and the corresponding element is
+        removed. The corresponding element's AX render object is removed, but
+        then recreated when accessibilityIsIgnored() invokes correspondingControl()
+        on the label. The corresponding renderer then has an AX render object
+        that survives beyond the deleted renderer, leading to invalid memory
+        accesses.
+
+        The solution is to rearrange the calls to delete the renderer's AX
+        render object only when we are sure it will no longer be required.
+
+        Reviewed by Simon Fraser.
+
+        Test: accessibility/corresponding-control-deleted-crash.html
+
+        * rendering/RenderObject.cpp:
+        (WebCore::RenderObject::willBeDestroyed): Move the call to remove the
+        renderer from the AXCache to after the renderer is removed from the
+        render tree. This means that the AXObject still exists during renderer
+        removal, as we require.
+
+2013-04-15  Andy Estes  <aestes@apple.com>
+
+        Merged r131670.
+
+    2012-10-17  Tom Sepez  <tsepez@chromium.org>
+
+        Crash in ContainerNode::removeAllChildren()
+        https://bugs.webkit.org/show_bug.cgi?id=98443
+
+        Reviewed by Eric Carlson.
+
+        This patch makes the errorEventSender added in WebKit Revision 112190 interact
+        with the updatedHasPendingLoadEvent() mechanism in the same manner as the other
+        existing event senders.
+
+        Test: http/tests/security/video-poster-cross-origin-crash2.html
+
+        * loader/ImageLoader.cpp:
+        (WebCore::ImageLoader::setImage):
+        (WebCore::ImageLoader::updateFromElement):
+        (WebCore::ImageLoader::notifyFinished):
+        (WebCore::ImageLoader::updatedHasPendingEvent):
+        (WebCore::ImageLoader::dispatchPendingBeforeLoadEvent):
+        (WebCore::ImageLoader::dispatchPendingLoadEvent):
+        * loader/ImageLoader.h:
+        (ImageLoader):
+
+2013-04-15  Andy Estes  <aestes@apple.com>
+
+        Merged r142063.
+
+    2013-02-06  Tom Sepez  <tsepez@chromium.org>
+
+        document.referrer leakage with XSS Auditor page block
+        https://bugs.webkit.org/show_bug.cgi?id=109089
+
+        Reviewed by Adam Barth.
+
+        Pass "about:blank" as referrer instead of "" so that the actual page
+        is not leaked when empty referrers are replaced later on in the
+        request.
+        
+        * html/parser/XSSAuditorDelegate.cpp:
+        (WebCore::XSSAuditorDelegate::didBlockScript):
+
+2013-04-15  Andy Estes  <aestes@apple.com>
+
+        Merged r139111.
+
+    2013-01-08  Tom Sepez  <tsepez@chromium.org>
+
+        Copy-paste preserves <embed> tags containing active content.
+        https://bugs.webkit.org/show_bug.cgi?id=77625
+
+        Reviewed by Ryosuke Niwa.
+
+        Test: editing/pasteboard/paste-noplugin.html
+
+        * dom/FragmentScriptingPermission.h:
+        (WebCore::scriptingContentIsAllowed):
+        (WebCore::pluginContentIsAllowed):
+        Add new permission to restrict plugin pasting.  Add inline functions to check
+        the implications of each permission rather than having a list of raw comparisions
+        sprinkled throughout the code. 
+        
+        * editing/markup.cpp:
+        (WebCore::createFragmentFromMarkup):
+        Revert back to unsafe plugin pasting regardless of caller's intentions when
+        the settings allow it.
+
+        * dom/Element.cpp:
+        (WebCore::Element::parserSetAttributes):
+        * html/parser/HTMLConstructionSite.cpp:
+        (WebCore::HTMLConstructionSite::insertScriptElement):
+        * xml/parser/XMLDocumentParserLibxml2.cpp:
+        (WebCore::XMLDocumentParser::endElementNs):
+        * xml/parser/XMLDocumentParserQt.cpp:
+        (WebCore::XMLDocumentParser::parseEndElement):
+        Use new inline functions to check implications of permissions rather than raw
+        comparisions.
+        
+        * html/parser/HTMLTreeBuilder.cpp:
+        (WebCore::HTMLTreeBuilder::processStartTagForInBody):
+        (WebCore::HTMLTreeBuilder::processEndTag):
+        Check if plugin pasting is allowed before inserting applet/embed/oject elements.
+
+        * page/Settings.in:
+        Declaration of new unsafePluginPastingEnabled setting.
+
+        * platform/mac/PasteboardMac.mm:
+        (WebCore::Pasteboard::documentFragment):
+        * platform/blackberry/PasteboardBlackBerry.cpp:
+        (WebCore::Pasteboard::documentFragment):
+        * platform/chromium/DragDataChromium.cpp:
+        (WebCore::DragData::asFragment):
+        * platform/chromium/PasteboardChromium.cpp:
+        (WebCore::Pasteboard::documentFragment):
+        * platform/gtk/PasteboardGtk.cpp:
+        (WebCore::Pasteboard::documentFragment):
+        * platform/qt/DragDataQt.cpp:
+        (WebCore::DragData::asFragment):
+        * platform/qt/PasteboardQt.cpp:
+        (WebCore::Pasteboard::documentFragment):
+        * platform/win/ClipboardUtilitiesWin.cpp:
+        (WebCore::fragmentFromCFHTML):
+        (WebCore::fragmentFromHTML):
+        * platform/wx/PasteboardWx.cpp:
+        (WebCore::Pasteboard::documentFragment):
+        Pass DisallowScriptingAndPluginContent enum value.
+        
+2013-04-15  Roger Fong  <roger_fong@apple.com>
+
+        Build fix for r148472.
+
+        * rendering/style/RenderStyle.cpp:
+        (WebCore::RenderStyle::setBlendedFontSize):
+        * rendering/style/RenderStyle.h:
+
+2013-04-15  Roger Fong  <roger_fong@apple.com>
+
+        Merged r138821.
+
+    01/04/13 John Mellor  <johnme@chromium.org>
+
+            Clamp font sizes to valid range in RenderStyle::setFontSize
+            https://bugs.webkit.org/show_bug.cgi?id=106014
+
+            Reviewed by Emil A Eklund.
+
+            There is a test-case attached to http://crbug.com/167443, but I can't
+            think of a good way of automatically testing this. Functionality
+            shouldn't change on normal pages.
+
+            * rendering/style/RenderStyleConstants.h:
+                Add constant for maximum allowed font size.
+            * css/StyleResolver.cpp:
+            (WebCore::StyleResolver::getComputedSizeFromSpecifiedSize):
+                Use constant from RenderStyleConstants.h instead of hardcoding.
+            * rendering/style/RenderStyle.cpp:
+            (WebCore::RenderStyle::setFontSize):
+                Clamp non-finite and out of range font sizes.
+
+2013-04-15  Andy Estes  <aestes@apple.com>
+
+        Merged r138990.
+
+    2013-01-07  Tom Sepez  <tsepez@chromium.org>
+
+        Document::initSecurityContext() gives parent security context to iframes with invalid URLs.
+        https://bugs.webkit.org/show_bug.cgi?id=104960
+
+        Reviewed by Adam Barth.
+
+        Change covers the case of an invalid non-empty URL.  We know nothing
+        about that kind of URL and choose not to inherit origins.
+        
+        * dom/Document.cpp:
+        (WebCore::shouldInheritSecurityOriginFromOwner):
+
+2013-04-15  Tim Horton  <timothy_horton@apple.com>
+
+    Merge r138460.
+
+    2012-12-25  Alexander Pavlov  <apavlov@chromium.org>
+
+            Web Inspector: Crash when modifying a rule that has been removed through JavaScript
+            https://bugs.webkit.org/show_bug.cgi?id=105718
+
+            Reviewed by Yury Semikhatsky.
+
+            CSSStyleRules should be stored by RefPtr's to avoid using stale pointers to deleted instances.
+
+            Test: inspector/styles/removed-rule-crash.html
+
+            * inspector/InspectorStyleSheet.cpp:
+            (WebCore::InspectorStyleSheet::ruleForId):
+            (WebCore::InspectorStyleSheet::revalidateStyle):
+            (WebCore::InspectorStyleSheet::buildArrayForRuleList):
+            (WebCore::InspectorStyleSheet::collectFlatRules):
+            * inspector/InspectorStyleSheet.h:
+            (InspectorStyleSheet):
+
+2013-04-15  Tim Horton  <timothy_horton@apple.com>
+
+        Merge r143454.
+
+    2013-02-20  Florin Malita  <fmalita@chromium.org>
+
+            Clear SVGPathSeg role on removal.
+            https://bugs.webkit.org/show_bug.cgi?id=110058
+
+            Reviewed by Dirk Schulze.
+
+            SVGPathSegListPropertyTearOff::initialize() and SVGPathSegListPropertyTearOff::replaceItem()
+            need to clear the context and role for segments being expunged from the list, similarly to
+            removeItem(). Otherwise, processIncomingListItemValue() can get confused and attempt to
+            remove stale segments.
+
+            Test: svg/dom/SVGPathSegList-crash.html
+
+            * svg/properties/SVGPathSegListPropertyTearOff.cpp:
+            (WebCore::SVGPathSegListPropertyTearOff::clearContextAndRoles):
+            (WebCore::SVGPathSegListPropertyTearOff::clear):
+            (WebCore::SVGPathSegListPropertyTearOff::replaceItem):
+            (WebCore):
+            * svg/properties/SVGPathSegListPropertyTearOff.h:
+            (WebCore::SVGPathSegListPropertyTearOff::initialize):
+            (SVGPathSegListPropertyTearOff):
+
+2013-04-15  Tim Horton  <timothy_horton@apple.com>
+
+        Merge r142759.
+
+    2013-02-13  Florin Malita  <fmalita@chromium.org>
+
+            [SVG] OOB access in SVGListProperty::replaceItemValues()
+            https://bugs.webkit.org/show_bug.cgi?id=109293
+
+            Replacing a list property item with itself should be a no-op. This patch updates the related
+            APIs and logic to detect the self-replace case and prevent removal of the item from the list.
+
+            To avoid scanning the list multiple times, removeItemFromList() is updated to operate on
+            indices and a findItem() method is added to resolve an item to an index.
+
+            Reviewed by Dirk Schulze.
+
+            No new tests: updated existing tests cover the change.
+
+            * svg/properties/SVGAnimatedListPropertyTearOff.h:
+            (WebCore::SVGAnimatedListPropertyTearOff::findItem):
+            (SVGAnimatedListPropertyTearOff):
+            (WebCore::SVGAnimatedListPropertyTearOff::removeItemFromList):
+            * svg/properties/SVGAnimatedPathSegListPropertyTearOff.h:
+            (WebCore::SVGAnimatedPathSegListPropertyTearOff::findItem):
+            (SVGAnimatedPathSegListPropertyTearOff):
+            (WebCore::SVGAnimatedPathSegListPropertyTearOff::removeItemFromList):
+            Add a findItem() delegating method, and update removeItemFromList() to use the new
+            index-based API.
+
+            * svg/properties/SVGListProperty.h:
+            (WebCore::SVGListProperty::insertItemBeforeValues):
+            (WebCore::SVGListProperty::insertItemBeforeValuesAndWrappers):
+            (WebCore::SVGListProperty::replaceItemValues):
+            (WebCore::SVGListProperty::replaceItemValuesAndWrappers):
+            (SVGListProperty):
+            Updated to handle the no-op case for insertItemBefore() & replaceItem().
+
+            * svg/properties/SVGListPropertyTearOff.h:
+            (WebCore::SVGListPropertyTearOff::findItem):
+            (WebCore::SVGListPropertyTearOff::removeItemFromList):
+            Index-based API updates.
+
+            (WebCore::SVGListPropertyTearOff::processIncomingListItemValue):
+            (WebCore::SVGListPropertyTearOff::processIncomingListItemWrapper):
+            * svg/properties/SVGPathSegListPropertyTearOff.cpp:
+            (WebCore::SVGPathSegListPropertyTearOff::processIncomingListItemValue):
+            Detect the self-replace case and return without removing the item from the list.
+
+            * svg/properties/SVGPathSegListPropertyTearOff.h:
+            (WebCore::SVGPathSegListPropertyTearOff::findItem):
+            (WebCore::SVGPathSegListPropertyTearOff::removeItemFromList):
+            (SVGPathSegListPropertyTearOff):
+            (WebCore::SVGPathSegListPropertyTearOff::processIncomingListItemWrapper):
+            * svg/properties/SVGStaticListPropertyTearOff.h:
+            (WebCore::SVGStaticListPropertyTearOff::processIncomingListItemValue):
+            (WebCore::SVGStaticListPropertyTearOff::processIncomingListItemWrapper):
+            Index-based API updates.
+
+2013-04-15  Timothy Hatcher  <timothy@apple.com>
+
+        Merge r140127.
+
+    2013-01-18  Yury Semikhatsky  <yurys@chromium.org>
+
+        Web Inspector: make sure InspectorInstrumentationCookie is invalidated if inspected page was destroyed
+        https://bugs.webkit.org/show_bug.cgi?id=107232
+
+        Reviewed by Pavel Feldman.
+
+        Made InstrumentingAgents reference counted to make sure it is not deleted while there is
+        InspectorInstrumentationCookie with reference to it.
+
+        Introduced InstrumentingAgents::reset that is called from inspector controller destructor
+        to double check that references to all deleted agents are cleared.
+
+        InspectorInstrumentationCookie turned from std::pair into a custom class so that
+        we can avoid inclusion of InstrumentingAgents.h into InspectorInstrumentation.h
+
+        * inspector/InspectorController.cpp:
+        (WebCore::InspectorController::InspectorController):
+        (WebCore::InspectorController::~InspectorController):
+        * inspector/InspectorController.h:
+        (InspectorController):
+        * inspector/InspectorInstrumentation.cpp:
+        (WebCore):
+        (WebCore::InspectorInstrumentationCookie::InspectorInstrumentationCookie):
+        (WebCore::InspectorInstrumentationCookie::operator=):
+        (WebCore::InspectorInstrumentationCookie::~InspectorInstrumentationCookie):
+        (WebCore::InspectorInstrumentation::didHandleEventImpl):
+        (WebCore::InspectorInstrumentation::didFireTimerImpl):
+        (WebCore::InspectorInstrumentation::didLayoutImpl):
+        (WebCore::InspectorInstrumentation::didPaintImpl):
+        (WebCore::InspectorInstrumentation::didRecalculateStyleImpl):
+        (WebCore::InspectorInstrumentation::didMatchRuleImpl):
+        (WebCore::InspectorInstrumentation::didProcessRuleImpl):
+        (WebCore::InspectorInstrumentation::didReceiveResourceResponseImpl):
+        (WebCore::InspectorInstrumentation::retrieveTimelineAgent):
+        * inspector/InspectorInstrumentation.h:
+        (InspectorInstrumentationCookie):
+        (WebCore::InspectorInstrumentation::didCallFunction):
+        (WebCore::InspectorInstrumentation::didDispatchXHRReadyStateChangeEvent):
+        (WebCore::InspectorInstrumentation::didDispatchEvent):
+        (WebCore::InspectorInstrumentation::didHandleEvent):
+        (WebCore::InspectorInstrumentation::didDispatchEventOnWindow):
+        (WebCore::InspectorInstrumentation::didEvaluateScript):
+        (WebCore::InspectorInstrumentation::didFireTimer):
+        (WebCore::InspectorInstrumentation::didLayout):
+        (WebCore::InspectorInstrumentation::didDispatchXHRLoadEvent):
+        (WebCore::InspectorInstrumentation::didPaint):
+        (WebCore::InspectorInstrumentation::didRecalculateStyle):
+        (WebCore::InspectorInstrumentation::didMatchRule):
+        (WebCore::InspectorInstrumentation::didProcessRule):
+        (WebCore::InspectorInstrumentation::didReceiveResourceData):
+        (WebCore::InspectorInstrumentation::didWriteHTML):
+        (WebCore::InspectorInstrumentation::didFireAnimationFrame):
+        * inspector/InstrumentingAgents.cpp:
+        (WebCore::InstrumentingAgents::InstrumentingAgents):
+        (WebCore):
+        (WebCore::InstrumentingAgents::reset):
+        * inspector/InstrumentingAgents.h:
+        (WebCore::InstrumentingAgents::create):
+        (InstrumentingAgents):
+        * inspector/WorkerInspectorController.cpp:
+        (WebCore::WorkerInspectorController::WorkerInspectorController):
+        (WebCore::WorkerInspectorController::~WorkerInspectorController):
+        * inspector/WorkerInspectorController.h:
+        (WorkerInspectorController):
+
+2013-04-15  Roger Fong  <roger_fong@apple.com>
+
+        Merge 133840, 134191, 134197.
+
+    2012-11-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+            Build fix after r134191. Turns out that FrameView::performPostLayoutTasks calls FrameSelection::updateAppearance
+            in the middle of a layout. So we can't have assertions in recomputeCaretRect and updateAppearance.
+
+            Furthermore, we can't update layout in updateAppearance. So do that in its call sites.
+        
+            * editing/FrameSelection.cpp:
+            (WebCore::FrameSelection::setSelection):
+            (WebCore::FrameSelection::recomputeCaretRect):
+            (WebCore::FrameSelection::updateAppearance):
+            (WebCore::FrameSelection::setCaretVisibility):
+
+    2012-11-09  Ryosuke Niwa  <rniwa@webkit.org>
+
+            Multiple Layout Tests (e.g. fast/repaint/japanese-rl-selection-clear.html) is failing after r133840.
+            https://bugs.webkit.org/show_bug.cgi?id=101547
+
+            Reviewed by Simon Fraser.
+
+            I overlooked the fact when the selection is null, we still have to invalidate the caret rect that
+            previously existed. Revert the optimization added in r133840 to skip caret invalidation when new
+            selection is null, and add a special method to be called by FrameLoader prior to destruction instead.
+            This will let us avoid doing an extra layout upon destruction and not regress repaint tests.
+
+            Covered by existing tests.
+
+            * editing/FrameSelection.cpp:
+            (WebCore::FrameSelection::setSelection): Added DoNotUpdateAppearance option.
+            (WebCore::FrameSelection::prepareForDestruction): Added.
+            (WebCore::FrameSelection::updateAppearance): Reverted the flawed optimization added in r133840.
+            Also, don't update style before updating selection unless text caret is disabled since we always
+            update the layout (including style) when text caret is enabled.
+            * editing/FrameSelection.h:
+            (FrameSelection):
+            * loader/FrameLoader.cpp:
+            (WebCore::FrameLoader::clear): Call prepareForDestruction instead of clear to avoid a layout.
+
+    2012-11-07  Ryosuke Niwa  <rniwa@webkit.org>
+
+            Crash in WebCore::RenderLayer::normalFlowList
+            https://bugs.webkit.org/show_bug.cgi?id=101528
+
+            Reviewed by Simon Fraser.
+
+            Make sure the layout is up to date before re-computing the caret rect.
+            Avoid doing the layout when the selection is cleared since we don't can
+            since we can always stop the blink timer in that case.
+
+            Unfortunately, we haven't found any reproduction of this crash yet.
+
+            * editing/FrameSelection.cpp:
+            (WebCore::isNonOrphanedCaret):
+            (WebCore):
+            (WebCore::FrameSelection::localCaretRect):
+            (WebCore::FrameSelection::updateAppearance):
+ 
+2013-04-15  Roger Fong  <roger_fong@apple.com>
+
+        Merged r138213.
+
+    2013-01-09  Abhishek Arya  <inferno@chromium.org>
+
+            Mitigate out-of-bounds access in InlineIterator
+            https://bugs.webkit.org/show_bug.cgi?id=104812
+
+            Reviewed by Levi Weintraub.
+
+            Share code between InlineIterator::current and InlineIterator::previousInSameNode,
+            thereby checking for access outside text renderer's length.
+
+            * rendering/InlineIterator.h:
+            (InlineIterator):
+            (WebCore::InlineIterator::characterAt):
+            (WebCore):
+            (WebCore::InlineIterator::current):
+            (WebCore::InlineIterator::previousInSameNode):
+
+2012-12-13  Lucas Forschler  <lforschler@apple.com>
+
+    Rollout r
+145643
+
+2013-04-15  Roger Fong  <roger_fong@apple.com>
+
+        Merge r142816.
+
+    2013-02-13  Abhishek Arya  <inferno@chromium.org>
+
+            ASSERTION FAILED: !object || object->isBox(), Bad cast in RenderBox::computeLogicalHeight
+            https://bugs.webkit.org/show_bug.cgi?id=107748
+
+            Reviewed by Levi Weintraub.
+
+            Make sure that body renderer is not an inline-block display
+            when determining that it stretches to viewport or when paginated
+            content needs base height.
+
+            Test: fast/block/body-inline-block-crash.html
+
+            * rendering/RenderBox.cpp:
+            (WebCore::RenderBox::computeLogicalHeight):
+            * rendering/RenderBox.h:
+            (WebCore::RenderBox::stretchesToViewport):
+
+2013-04-15  Roger Fong  <roger_fong@apple.com>
+
+        Merge r142922.
+
+    2013-02-14  Abhishek Arya  <inferno@chromium.org>
+
+            Bad cast in RenderBlock::splitBlocks.
+            https://bugs.webkit.org/show_bug.cgi?id=108691
+
+            Reviewed by Levi Weintraub.
+
+            Test: fast/multicol/remove-child-split-flow-crash.html
+
+            * rendering/RenderBlock.cpp:
+            (WebCore):
+            (WebCore::RenderBlock::addChildIgnoringAnonymousColumnBlocks): rename gIsInColumnFlowSplit to gColumnFlowSplitEnabled
+            and use it to decide when to do the column flow split or not.
+            (WebCore::RenderBlock::removeChild): Do not allow column flow split inside removeChild
+            since we might be merging anonymous blocks.
+
+2013-04-15  Roger Fong  <roger_fong@apple.com>
+
+        Merge r138988.
+
+    2013-01-07  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-buffer-overflow in WebCore::RenderBlock::clone.
+            https://bugs.webkit.org/show_bug.cgi?id=101984
+
+            Reviewed by Julien Chaffraix.
+
+            Add a global in RenderBlock to prevent recursion inside splitFlow.
+            While inside splitFlow (multi-column handling), we move many children
+            using fullRemoveInsert=true, causing RenderBlock::addChild to be called
+            and recursing in splitFlow. This messes the tree splitting happening in
+            RenderBlock::splitBlocks and can cause bad casts.
+
+            Test: fast/multicol/recursive-split-flow-crash.html
+
+            * rendering/RenderBlock.cpp:
+            (WebCore::RenderBlock::addChildIgnoringAnonymousColumnBlocks):
+
+2013-04-13  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136845
+
+    2012-12-06  Stephen Chenney  <schenney@chromium.org>
+
+            SVG <use> element inside an svg-as-image fails
+            https://bugs.webkit.org/show_bug.cgi?id=104007
+
+            Reviewed by Eric Seidel.
+
+            Upon redraw, SVGImage calls layout on the document it is drawing into
+            the image if the image, provided it believes the redraw does not need
+            to be delayed. Unfortunately, when an SVG <use> element is modified
+            (by animation, say) and regenerates its shadow tree, the destructors
+            invoke redraw, causing the SVGImage to call layout on something that
+            is in the process of being deleted. That's bad.
+
+            This change causes SVGImage to always delay the redraw. It is the most robust
+            way to protect against this problem, as there may be any number of
+            ways to cause this issue (a node being deleted in an svg-as-image
+            target) and this protects against them all.
+
+            The test case crashes in Asan Chromium.
+
+            Test: svg/as-image/animated-use-as-image-crash.html
+
+            * svg/graphics/SVGImageCache.cpp:
+            (WebCore::SVGImageCache::imageContentChanged): Always redraw on the timer.
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge 140893
+
+    2013-01-30  Kentaro Hara  <haraken@chromium.org>
+
+            Remove InjectedScript::wrapSerializedObject()
+            https://bugs.webkit.org/show_bug.cgi?id=107906
+
+            Reviewed by Abhishek Arya.
+
+            InjectedScript::wrapSerializedObject() is unused.
+            (This is one of steps to remove raw pointers of SerializedScriptValue*,
+            which can be a security concern.)
+
+            * inspector/InjectedScript.cpp:
+            * inspector/InjectedScript.h:
+            (InjectedScript):
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge 141315
+
+    2013-01-30  Kentaro Hara  <haraken@chromium.org>
+
+            isSameAsCurrentState() should take SerializedScriptValue* instead of PassRefPtr
+            https://bugs.webkit.org/show_bug.cgi?id=107904
+
+            Reviewed by Darin Adler.
+
+            Applied Darin's comment: https://bugs.webkit.org/show_bug.cgi?id=107904#c5
+
+            No tests. No change in behavior.
+
+            * bindings/js/JSPopStateEventCustom.cpp:
+            (WebCore::JSPopStateEvent::state):
+            * bindings/v8/custom/V8PopStateEventCustom.cpp:
+            (WebCore::V8PopStateEvent::stateAccessorGetter):
+            * page/History.cpp:
+            (WebCore::History::isSameAsCurrentState):
+            * page/History.h:
+            (History):
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge 140886
+
+    2013-01-25  Kentaro Hara  <haraken@chromium.org>
+
+            Keep a RefPtr<SerializedScriptValue*> when we call serialize()/deserialize() in PopStateEvent
+            https://bugs.webkit.org/show_bug.cgi?id=107904
+
+            Reviewed by Abhishek Arya.
+
+            If you use a raw SerializedScriptValue* for serialize()/deserialize(),
+            it can potentially cause a use-after-free. This is because serialize()/
+            deserialize() can destruct a RefPtr of the SerializedScriptValue*,
+            depending on data that is serialized/deserialized. So we should keep a
+            RefPtr<SerializedScriptValue*> when we call serialize()/deserialize().
+            (See https://bugs.webkit.org/show_bug.cgi?id=107792 for more details.)
+
+            No tests. This is just a just-in-case fix.
+
+            * dom/PopStateEvent.h:
+            (WebCore::PopStateEvent::serializedState):
+            * page/History.cpp:
+            (WebCore::History::isSameAsCurrentState):
+            * page/History.h:
+            (History):
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge r140892
+
+    2013-01-25  Kentaro Hara  <haraken@chromium.org>
+
+            Keep a RefPtr<SerializedScriptValue*> when we call serialize()/deserialize() in code generators
+            https://bugs.webkit.org/show_bug.cgi?id=107902
+
+            Reviewed by Abhishek Arya.
+
+            If you use a raw SerializedScriptValue* for serialize()/deserialize(),
+            it can potentially cause a use-after-free. This is because serialize()/
+            deserialize() can destruct a RefPtr of the SerializedScriptValue*,
+            depending on data that is serialized/deserialized. So we should keep a
+            RefPtr<SerializedScriptValue*> when we call serialize()/deserialize().
+            (See https://bugs.webkit.org/show_bug.cgi?id=107792 for more details.)
+
+            No tests. This is just a just-in-case fix.
+
+            * Modules/intents/Intent.h:
+            (WebCore::Intent::data):
+            * Modules/intents/IntentRequest.cpp:
+            (WebCore::IntentRequest::postResult):
+            (WebCore::IntentRequest::postFailure):
+            * Modules/intents/IntentRequest.h:
+            (IntentRequest):
+            * Modules/intents/IntentResultCallback.h:
+            (IntentResultCallback):
+            * bindings/scripts/CodeGeneratorJS.pm:
+            (GetNativeTypeForCallbacks):
+            * bindings/scripts/CodeGeneratorV8.pm:
+            (GenerateNormalAttrGetter):
+            (GetNativeTypeForCallbacks):
+            * bindings/scripts/test/V8/V8TestSerializedScriptValueInterface.cpp:
+            (WebCore::TestSerializedScriptValueInterfaceV8Internal::cachedValueAttrGetter):
+            (WebCore::TestSerializedScriptValueInterfaceV8Internal::cachedReadonlyValueAttrGetter):
+            * dom/MessagePortChannel.h:
+            (WebCore::MessagePortChannel::EventData::message):
+
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge r140891
+
+    2013-01-25  Kentaro Hara  <haraken@chromium.org>
+
+            Keep a RefPtr<SerializedScriptValue*> when we call serialize()/deserialize() for MessageEvent
+            https://bugs.webkit.org/show_bug.cgi?id=107900
+
+            Reviewed by Abhishek Arya.
+
+            If you use a raw SerializedScriptValue* for serialize()/deserialize(),
+            it can potentially cause a use-after-free. This is because serialize()/
+            deserialize() can destruct a RefPtr of the SerializedScriptValue*,
+            depending on data that is serialized/deserialized. So we should keep a
+            RefPtr<SerializedScriptValue*> when we call serialize()/deserialize().
+            (See https://bugs.webkit.org/show_bug.cgi?id=107792 for more details.)
+
+            No tests. This is just a just-in-case fix. I couldn't find any bug
+            even in an ASAN build.
+
+            * bindings/js/JSMessageEventCustom.cpp:
+            (WebCore::JSMessageEvent::data):
+            * bindings/v8/custom/V8MessageEventCustom.cpp:
+            (WebCore::V8MessageEvent::dataAccessorGetter):
+            * dom/MessageEvent.h:
+            (WebCore::MessageEvent::dataAsSerializedScriptValue):
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge r140748.
+
+    2013-01-24  Kentaro Hara  <haraken@chromium.org>
+
+            Regression(r107058): Use-after-free in SerializedScriptValue::deserialize
+            https://bugs.webkit.org/show_bug.cgi?id=107792
+
+            Reviewed by Abhishek Arya.
+
+            Imagine the following call path:
+
+            (1) history.state is accessed.
+            (2) V8History::stateAccessorGetter() calls History::state(), which calls
+            HistoryItem::stateObject().
+            (3) HistoryItem holds m_stateObject as RefPtr<SerializedScriptValue>,
+            but HistoryItem::stateObject() returns SerializedScriptValue*.
+            (4) V8History::stateAccessorGetter calls SerializedScriptValue::deserialize()
+            for the SerializedScriptValue* obtained in (3).
+            (5) SerializedScriptValue::deserialize() can call history.replaceState()
+            in its deserialization process (See the test case in the Chromium bug).
+            (6) history.replaceState() replaces HistoryItem::m_stateObject.
+            This replacement destructs the original HistoryItem::m_stateObject.
+            (7) The current deserialization process can crash due to the premature destruction.
+
+            To avoid the problem, we have to pass PassRefPtr<SerializedScriptValue> around
+            instead of SerializedScriptValue*.
+
+            Test: fast/history/replacestate-nocrash.html
+
+            * bindings/v8/custom/V8HistoryCustom.cpp:
+            (WebCore::V8History::stateAccessorGetter):
+            * history/HistoryItem.h:
+            (WebCore):
+            (WebCore::HistoryItem::stateObject):
+            * loader/FrameLoader.cpp:
+            (WebCore::FrameLoader::loadInSameDocument):
+            * loader/FrameLoader.h:
+            * page/History.cpp:
+            (WebCore::History::state):
+            (WebCore::History::stateInternal):
+            * page/History.h:
+            (History):
+
+2013-04-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r129814
+
+    2012-09-27  Levi Weintraub  <leviw@chromium.org>
+
+            REGRESSION(r129186): Pressing enter at the end of a line deletes the line
+            https://bugs.webkit.org/show_bug.cgi?id=97763
+
+            Reviewed by Ryosuke Niwa.
+
+            r129186 exposed incorrect behavior in RenderText whereby RenderText's lines were
+            dirtied but the renderer wasn't marked for layout. Rich text editing in GMail exposed
+            this behavior. RenderText::setTextWithOffset is called with a text string identical
+            to the current text. It still dirties lines, then calls setText, which has a check
+            for the case when the strings are the same and returns early and doesn't mark us as
+            needing layout.
+
+            This change adds the same early bailing logic in setText to setTextWithOffset, but
+            forces setText to work its magic whenever we dirty lines there (and avoid double-
+            checking that the strings are equal).
+
+            * rendering/RenderText.cpp:
+            (WebCore::RenderText::setTextWithOffset):
+
+2013-04-12  Roger Fong  <roger_fong@apple.com>
+
+        Merge r143565.
+
+    2013-02-20  Wei James  <james.wei@intel.com>
+    
+            ChannelMergerNode may need check for deferred updating of output channels
+            https://bugs.webkit.org/show_bug.cgi?id=108863
+    
+            There can in rare cases be a slight delay before the output bus is updated
+            to the new number of channels because of tryLocks() in the context's
+            updating system. So need to check the channel number before processing.
+    
+            Reviewed by Chris Rogers.
+    
+            * Modules/webaudio/ChannelMergerNode.cpp:
+            (WebCore::ChannelMergerNode::ChannelMergerNode):
+            (WebCore::ChannelMergerNode::process):
+            (WebCore::ChannelMergerNode::checkNumberOfChannelsForInput):
+            * Modules/webaudio/ChannelMergerNode.h:
+            (ChannelMergerNode):
+
+2013-04-12  Tim Horton  <timothy_horton@apple.com> 
+
+        Merge r132856
+
+    2012-10-25  Stephen Chenney  <schenney@chromium.org>
+
+            feImage should not be allowed to self reference
+            https://bugs.webkit.org/show_bug.cgi?id=94652
+
+            Reviewed by Eric Seidel.
+
+            Add cycle detection for SVG filter application, and also fix a problem
+            with graphics context restore when filters are applied. This also
+            converts the flags in FilterData to a state tracking system, as the
+            number of flags was getting messy and only one flag is valid at any given time.
+
+            Test: svg/filters/feImage-self-and-other-referencing.html
+
+            * rendering/svg/RenderSVGResourceFilter.cpp: Convert to new FilterData
+            state management and enable cycle detection.
+            (WebCore):
+            (WebCore::RenderSVGResourceFilter::removeClientFromCache): Change isBuilt and markedForRemoval flags to state enums.
+            (WebCore::RenderSVGResourceFilter::applyResource): Change flags to state enums and detect cycles.
+            (WebCore::RenderSVGResourceFilter::postApplyResource): Change flags to state and add handling
+            for the various states.
+            (WebCore::RenderSVGResourceFilter::primitiveAttributeChanged): Change isBuilt flag to state enums.
+            * rendering/svg/RenderSVGResourceFilter.h:
+            (WebCore::FilterData::FilterData):
+            (FilterData): Convert to a state tracking system.
+            * rendering/svg/RenderSVGRoot.cpp:
+            (WebCore::RenderSVGRoot::paintReplaced): Add a block around the
+            SVGRenderingContext so that it applies the filter and reverts the
+            context before the calling method restores the context.
+
+2013-04-12  Tim Horton  <timothy_horton@apple.com> 
+
+        Merge r131488
+
+    2012-10-16  Stephen Chenney  <schenney@chromium.org> 
+            An feImage that tries to render itself should be stopped
+            https://bugs.webkit.org/show_bug.cgi?id=94652
+
+            Reviewed by Eric Seidel.
+
+            An SVG feImage filter element will accept, as the src to render, an
+            SVG document that makes use of the feImage itself. This causes the
+            feImage to try to draw itself while already in the process of drawing
+            itself. Various problems arise from this. The invariant we wish to
+            maintain is that no element in the src tree of an feImage element
+            refers to that feImage.
+
+            This patch adds a flag to all FilterData objects that tracks whether or
+            not the filter is currently applying itself, and avoids applying the
+            filter recursively.
+
+            While it may seem better to catch this problem when the src is set, or
+            when the filter is built, that turns out to be challenging and
+            inefficient. Say we choose to test when the src atttribute is set. To
+            do so would require looking through all of the DOM nodes that will be
+            rendered for the src, finding all resources used, and checking if any
+            of them make use fo the feImage element that we are setting the source
+            for. The infrastructure is not in place to do that, and it would
+            involve walking a potentially very large portion of the DOM in order
+            to detect a very rare situation. Note that it is not enough just to
+            walk the DOM directly under the src; we also need to recursively follow any
+            resource links to see if they use the feImage (e.g. patterns or
+            masks or use or ...).
+
+            If we instead try to use the renderer node to find self referencing,
+            we need to recursively walk a potentially very large render tree,
+            tracing all resources in search of the feImage. This would need to be
+            done every time the filter is built, which is again a significant
+            overhead for a situation that is very unlikely to occur. And we do not
+            have methods that make it easy to find feImage filter effect nodes; they are
+            hidden behind filter resource nodes.
+
+            Hence the runtime check to catch the problem. The check must be in
+            FilterData and RenderSVGResourceFilter code because we must prevent
+            the destruction of the feImage when we encounter it recursively.
+
+            This patch also renames FilterData::builded to FilterData::isBuilt.
+
+            Test: svg/filters/feImage-self-referencing.html
+
+            * rendering/svg/RenderSVGResourceFilter.cpp:
+            (WebCore::ApplyingFilterEffectGuard): Guard to ensure that, in the future, we always
+            clear the isApplying flag even if the postApplyResource method returns early.
+            (WebCore::RenderSVGResourceFilter::applyResource): Do not apply a resource that is already applying and
+            rename builded to isBuilt.
+            (WebCore::RenderSVGResourceFilter::postApplyResource): Mark a resource as applying and clear after
+            it is done. Abort if a resource is already applying when the method begins. Rename builded to isBuilt.
+            (WebCore::RenderSVGResourceFilter::primitiveAttributeChanged): Rename builded to isBuilt.
+            * rendering/svg/RenderSVGResourceFilter.h:
+            (WebCore::FilterData::FilterData):
+            (FilterData): Add isApplying and rename builded to isBuilt.
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge 130717.
+
+    2012-10-08  Yoshifumi Inoue  <yosin@chromium.org>
+
+            HTMLSelectElement::typeAheadFind depends on implementation dependent behavior
+            https://bugs.webkit.org/show_bug.cgi?id=98710
+
+            Reviewed by Kent Tamura.
+
+            This patch gets rid of C/C++ implementation dependent behavior from
+            HTMLSelectElement::typeAheadFind() which does modulo operation with
+            a negative operand.
+
+            HTMLSelectElement::typeAheadFind() contains expression with modulo
+            operator and dividend can be -1 when the "select" element without
+            "option" element but "optgroup" element.
+
+            Test: fast/forms/select/select-typeahead-crash.html
+
+            * html/HTMLSelectElement.cpp:
+            (WebCore::HTMLSelectElement::typeAheadFind): Changed to do modulo
+            operation with both operands are non-negative.
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge 136619.
+
+    2012-12-04  Abhishek Arya  <inferno@chromium.org>
+
+            Crash in WebCore::ApplyStyleCommand::pushDownInlineStyleAroundNode
+            https://bugs.webkit.org/show_bug.cgi?id=103515
+
+            Reviewed by Ryosuke Niwa.
+
+            |current| is weak node pointer that iterates in the hierarchy chain
+            between |highestAncestor| and |targetNode|. Script executed as part
+            of iframe onload event can blow away the nodes and we no longer have
+            |targetNode| in our descendants chain. So, we RefPtr |current| and bail
+            out when |targetNode| stops being a part of descendant chain.
+
+            Test blocked on https://bugs.webkit.org/show_bug.cgi?id=104044.
+
+            * editing/ApplyStyleCommand.cpp:
+            (WebCore::ApplyStyleCommand::pushDownInlineStyleAroundNode):
+
+2013-04-12  Ryosuke Niwa  <rniwa@webkit.org>
+
+        Merge 117463.
+
+    2012-05-17  Caio Marcelo de Oliveira Filho  <caio.oliveira@openbossa.org>
+
+            [Qt] REGRESSION(101967): It made editing/style/iframe-onload-crash-mac.html timeout
+            https://bugs.webkit.org/show_bug.cgi?id=73802
+
+            Reviewed by Ryosuke Niwa.
+
+            Timeout was caused by an infinite in the outer loop of
+            pushDownInlineStyleAroundNode(). The outer loop variable 'current' should point at the
+            node containing 'targetNode'. The inner loop traverse the children of 'current'
+            and discover the children that contains 'targetNode'.
+
+            However, before the inner loop, we call removeInlineStyleFromElement() that can
+            potentially remove the 'current' node from the tree, moving its children to
+            'current' former parent. For that reason 'child' and 'lastChild' are collected
+            before this call.
+
+            The tricky part is that changing the 'current' children parent, we might trigger
+            further side-effects, that can remove either 'child' or 'lastChild' from the tree
+            too. The infinite loop was due to 'child' being off the document, so it's
+            nextSibling() is 0, and we go another run of outer loop without changing
+            'current' because the 'targetNode' wasn't in the first child that inner loop
+            couldn't reach.
+
+            When testing Qt on Mac, there was also a crash in RenderTextControl when the font
+            family was empty, this patch fixes it as well.
+
+            * editing/ApplyStyleCommand.cpp:
+            (WebCore::ApplyStyleCommand::pushDownInlineStyleAroundNode): Use NodeVector
+            instead of relying on first/last child being valid after
+            removeInlineStyleFromElement() is called. Skip the child if it has no parent,
+            this is an indication that it was removed from the tree.
+
+            * rendering/RenderTextControl.cpp:
+            (WebCore::RenderTextControl::hasValidAvgCharWidth): Empty AtomicStrings aren't
+            supported by HashSet, so we have to early return in this case.
+
+2013-04-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138654
+
+    2013-01-02  Douglas Stockwell  <dstockwell@chromium.org>
+
+            Crash in WebCore::InlineBox::deleteLine
+            https://bugs.webkit.org/show_bug.cgi?id=93448
+
+            Reviewed by Eric Seidel.
+
+            When we ran off the end of the line while looking for line breaks in an
+            inline with white-space:nowrap nested in a block with white-space:pre
+            it was possible for the line break to be set at or before the current
+            position -- this could result in duplications in the render tree or
+            infinite looping.
+
+            This patch changes the "fixup" logic that runs after we have finished
+            iterating through elements and text and have potentially found a break
+            point. In the case of a block setting white-space:pre we would back up
+            a character in some cases. Not doing so could leave whitespace that
+            should have been collapsed at the end of an inline.
+
+            For example in '<span style="white-space:nowrap">x_</span>_y' if a
+            break was inserted before 'y' the space after 'x' would still be
+            rendered (rather than be collapsed with the break).
+
+            To avoid this problem we will not take the opportunity to break until
+            we have finished collapsing whitespace.
+
+            Tests: fast/text/whitespace/inline-whitespace-wrapping-1.html
+                   fast/text/whitespace/inline-whitespace-wrapping-2.html
+                   fast/text/whitespace/inline-whitespace-wrapping-3.html
+                   fast/text/whitespace/inline-whitespace-wrapping-4.html
+                   fast/text/whitespace/nowrap-white-space-collapse.html
+                   fast/text/whitespace/pre-block-normal-inline-crash-1.html
+                   fast/text/whitespace/pre-block-normal-inline-crash-2.html
+
+            * rendering/RenderBlockLineLayout.cpp:
+            (WebCore::RenderBlock::LineBreaker::nextLineBreak): Collapse
+            whitespace before breaking. Avoid setting the break before the current
+            position.
+
+2013-04-11  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136554
+
+    2012-12-04  Julien Chaffraix  <jchaffraix@webkit.org>
+
+            Heap-use-after-free in WebCore::RenderLayer::paintList [MathML]
+            https://bugs.webkit.org/show_bug.cgi?id=100764
+
+            Reviewed by Eric Seidel.
+
+            Test: mathml/mfenced-root-layer.html
+
+            * rendering/RenderLayer.cpp:
+            (WebCore::RenderLayer::stackingContext):
+            Fixed this function to ensure that it always returns a stacking context, the bug
+            was that the document element's layer wasn't guaranteed to be a stacking context.
+
+2013-04-10  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136250
+
+    2012-11-30  Florin Malita  <fmalita@chromium.org>
+
+            SVG pattern data deleted while in use
+            https://bugs.webkit.org/show_bug.cgi?id=103415
+
+            Reviewed by Dirk Schulze.
+
+            Various calls in RenderSVGResourcePattern::applyResource() can trigger invalidations,
+            which may end up deleting our current pattern data (via removeAllClientsFromCache).
+            To avoid this, we should add the pattern data to the cache only after it is fully built.
+            For clarity, the patch also refactors the pattern setup code into a separate method.
+
+            Test: svg/custom/large-image-pattern-crash.html
+
+            * rendering/svg/RenderSVGResourcePattern.cpp:
+            (WebCore::RenderSVGResourcePattern::buildPattern):
+            (WebCore::RenderSVGResourcePattern::applyResource):
+            * rendering/svg/RenderSVGResourcePattern.h:
+            (RenderSVGResourcePattern):
+
+2013-03-15  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136062
+
+    2012-11-28  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-use-after-free in WebCore::EventHandler::handleMousePressEvent
+            https://bugs.webkit.org/show_bug.cgi?id=101098
+
+            Reviewed by Adam Barth.
+
+            |subframe| can be blown away inside passMousePressEventToSubframe
+            call. Use RefPtr to protect it in handleMousePressEvent function.
+            We use similar approach in handleMouseMoveEvent function.
+
+            No new tests. Test is extremely time dependent and needs to trigger
+            interaction gesture. Reproduced on ClusterFuzz.
+
+            * page/EventHandler.cpp:
+            (WebCore::EventHandler::handleMousePressEvent):
+
+2013-03-15  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r132970
+
+    2012-10-30  Chris Evans  <cevans@google.com>
+
+            Improve performance of MaskPtr.
+            https://bugs.webkit.org/show_bug.cgi?id=100790
+
+            Reviewed by Eric Seidel.
+
+            Calculate the mask once, and store it as a fast-access member variable.
+            Also avoid unneccessary integer width expansion in index calculation.
+            Parser/tiny-innerHTML.html has a high stddev.
+            Best result I've seen pre-patch is 5.70 runs/s.
+            Best result I've seen post-patch is 5.72 runs/s, but this is not statistically significant.
+            MaskPtr is still showing as ~2% in the profile, so we're not sure we trust the profile symbolization at this time.
+            MaskPtr is now reduced to a single inline instruction (was: 4) so this seems like a strict improvement worth landing.
+
+            * rendering/RenderArena.cpp:
+            (MaskPtr): Use a passed-in mask for the mask operation.
+            (WebCore::RenderArena::RenderArena): Calculate the mask and store it.
+            (WebCore::RenderArena::allocate):
+            (WebCore::RenderArena::free): Use stored mask and avoid unneccessary casts.
+            * rendering/RenderArena.h:
+            (RenderArena): Store the freelist mask as a member variable.
+
+2013-03-15  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r132724
+
+    2012-10-26  Philip Rogers  <pdr@google.com>
+
+            Prevent NaN offset values in ElementTimeControl.
+            https://bugs.webkit.org/show_bug.cgi?id=100322
+
+            Reviewed by Abhishek Arya.
+
+            NaN values can cause ElementTimeControl to go back in time!
+            If a value of NaN is passed to ElementTimeControl::beginElementAt(offset),
+            subsequent sorting will cause an assert in SVGSMILElement::findInstanceTime
+            because NaN values are not properly sorted. NaN SMILTime values
+            should not be allowed at all, so this patch adds a check for them in
+            ElementTimeControl's setters.
+
+            This patch also adds preventative asserts to catch if SMILTime is ever
+            initialized with NaN, or if addEndTime/addBeginTime are ever called
+            with NaN values.
+
+            Test: svg/custom/elementTimeControl-nan-crash.html
+
+            * svg/SVGAnimationElement.cpp:
+            (WebCore::SVGAnimationElement::beginElementAt):
+            (WebCore::SVGAnimationElement::endElementAt):
+            * svg/animation/SMILTime.h:
+            (WebCore::SMILTime::SMILTime):
+            * svg/animation/SVGSMILElement.cpp:
+            (WebCore::SVGSMILElement::addBeginTime):
+            (WebCore::SVGSMILElement::addEndTime):
+
+2013-03-15  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r132511
+
+    2012-10-25  Tom Sepez  <tsepez@chromium.org>
+
+            XSSAuditor must replace form action with about:blank when reflected action detected.
+            https://bugs.webkit.org/show_bug.cgi?id=100280
+
+            Reviewed by Daniel Bates.
+
+            Changes empty string form-action replacement to about:blank.
+            Existing form-action.html test modified to check this case.
+
+            * html/parser/XSSAuditor.cpp:
+            (WebCore::XSSAuditor::filterFormToken):
+
+2013-03-15  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r132287
+
+    2012-10-23  Nate Chapin  <japhet@chromium.org>
+
+            Crash in WebCore::SubresourceLoader::willSendRequest.
+            https://bugs.webkit.org/show_bug.cgi?id=100147
+
+            Reviewed by Abhishek Arya.
+
+            No new tests. There is a test case that should cover this, but it doesn't
+            work correctly on many platforms due to its use of testRunner.addURLToRedirect().
+            See http/tests/loading/cross-origin-XHR-willLoadRequest.html.
+            Tested manually on http://www.nick.co.uk/shows/spongebob
+
+            * loader/SubresourceLoader.cpp:
+            (WebCore::SubresourceLoader::willSendRequest):
+
+2013-03-15  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r131709
+
+    2012-10-18  MORITA Hajime  <morrita@google.com>
+
+            Assertion failure at TreeScopeAdopter::moveNodeToNewDocument()
+            https://bugs.webkit.org/show_bug.cgi?id=99510
+
+            Reviewed by Kent Tamura.
+
+            Shadow DOM notification call didn't have checks for mutation detection.
+            This change adds such checks.
+
+            Test: fast/forms/textarea/textarea-autofocus-removal-while-focusing-with-style.html
+
+            * dom/ContainerNodeAlgorithms.cpp:
+            (WebCore::ChildNodeInsertionNotifier::notifyDescendantInsertedIntoDocument):
+            (WebCore::ChildNodeRemovalNotifier::notifyDescendantRemovedFromDocument):
+
+2013-03-15  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r130999
+
+    2012-10-10  Stephen Chenney  <schenney@chromium.org>
+
+            SVGTextRunRenderingContext changes font data in the glyph page, but it shouldn't
+            https://bugs.webkit.org/show_bug.cgi?id=98755
+
+            Reviewed by Eric Seidel.
+
+            The code in SVGTextRunRenderingContext::glyphDataForCharacter, when it
+            encounters an <altglyph> tag, immediately replaces the font data for a
+            glyph with font data for the primary font, presumably to meet the SVG
+            spec requirement: "If the references to alternate glyphs do not result
+            in successful identification of alternate glyphs to use, then the
+            character(s) that are inside of the ‘altGlyph’ element are rendered as
+            if the ‘altGlyph’ element were a ‘tspan’ element instead."
+
+            If the alt glyph is not then found we are in the case from the spec
+            and indeed we should use the primary font. However, we end up replacing the GlyphPage
+            entry for the character with primary font data, which we should not do
+            because the glyph page might be used in some place that does not have
+            the alt glyph tag.
+
+            Furthermore, this causes object lifetime problems for font data, because
+            in cases where the font data that is replaced is for the system fallback
+            font the GlyphPage will live forever with no knowldege that it contains
+            font data pointers into font data other that the system fallback. The
+            replaced font data may be deleted while the pointer lives on in the
+            system fallback page.
+
+            The fix is simply not to replace the font data in the page.
+
+            Test: svg/text/alt-glpyh-on-fallback-font-crash.html
+
+            * rendering/svg/SVGTextRunRenderingContext.cpp:
+            (WebCore::SVGTextRunRenderingContext::glyphDataForCharacter): Keep track of the original font data and put it back
+            in the glyph page when the method has finished.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r142657
+
+    2013-02-12  Levi Weintraub  <leviw@chromium.org>
+
+            ASSERTION FAILED: !object || object->isBox(), UNKNOWN in WebCore::RenderListItem::positionListMarker
+            https://bugs.webkit.org/show_bug.cgi?id=108699
+
+            Reviewed by Abhishek Arya.
+
+            RenderListItems performs special management of its children to maintain list markers. Splitting a flow
+            through a list item results in assumptions made inside RenderListItem failing, so for now, avoid splitting
+            flows when inside one.
+
+            Test: fast/multicol/span/list-multi-column-crash.html
+
+            * rendering/RenderBlock.cpp:
+            (WebCore::RenderBlock::containingColumnsBlock):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r140558
+
+    2013-01-17  Roger Fong  <roger_fong@apple.com>
+
+            [Win] Remove dependence on Microsoft Embedded OpenType Font Engine (T2EMBED.DLL)  from FontCustomPlatformData.cpp.
+            https://bugs.webkit.org/show_bug.cgi?id=107153
+
+            Reviewed by Dan Bernstein.
+
+            * platform/graphics/win/FontCustomPlatformData.cpp:
+            (WebCore):
+            (WebCore::FontCustomPlatformData::~FontCustomPlatformData):
+            (WebCore::FontCustomPlatformData::fontPlatformData):
+            (WebCore::createFontCustomPlatformData):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r142539
+
+    2013-02-11  Emil A Eklund  <eae@chromium.org>
+
+            Change RenderFrameSet::paint to use m-rows/m_cols directly.
+            https://bugs.webkit.org/show_bug.cgi?id=108503
+
+            Reviewed by Eric Seidel.
+
+            Test: fast/frames/invalid-frameset.html
+
+            * rendering/RenderFrameSet.cpp:
+            (WebCore::RenderFrameSet::paint):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r142365
+
+    2013-02-09  Philip Rogers  <pdr@google.com>
+
+            Sanitize m_keyTimes for paced value animations
+            https://bugs.webkit.org/show_bug.cgi?id=108828
+
+            Reviewed by Dirk Schulze.
+
+            SVG animations with calcMode=paced calculate new m_keyTimes in
+            SVGAnimationElement::calculateKeyTimesForCalcModePaced() because paced animations do not
+            specify keyTimes. If an error occurs while calculating m_keyTimes, and there exists
+            user-specified values, a crash could occur because the user-specified values were not
+            sanitized.
+
+            This change clears user-specified keyTimes before calculating new ones.
+
+            Test: svg/animations/animate-keytimes-crash.html
+
+            * svg/SVGAnimationElement.cpp:
+            (WebCore::SVGAnimationElement::calculateKeyTimesForCalcModePaced):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r142358
+
+    2013-02-09  Kent Tamura  <tkent@chromium.org>
+
+            Fix crash by img[ismap] with content property
+            https://bugs.webkit.org/show_bug.cgi?id=108702
+
+            Reviewed by Adam Barth.
+
+            Test: fast/dom/HTMLAnchorElement/anchor-ismap-crash.html
+
+            * html/HTMLAnchorElement.cpp:
+            (WebCore::appendServerMapMousePosition):
+            Check if the renderer of an img element is RenderImage.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r141858
+
+    2013-02-04  Kent Tamura  <tkent@chromium.org>
+
+            Fix crash by <select> type change on focus
+            https://bugs.webkit.org/show_bug.cgi?id=108830
+
+            Reviewed by Abhishek Arya.
+
+            Test: fast/forms/select/select-change-type-on-focus.html
+
+            * html/HTMLSelectElement.cpp:
+            (WebCore::HTMLSelectElement::menuListDefaultEventHandler):
+            focus() calls may change the renderer type.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r141851
+
+    2013-02-04  Wei James  <james.wei@intel.com>
+
+            Heap-buffer-overflow in WebCore::AudioBufferSourceNode::process
+            https://bugs.webkit.org/show_bug.cgi?id=108515
+
+            After calling setBuffer() with a buffer having a different number of
+            channels, there can in rare cases be a slight delay before the output
+            bus is updated to the new number of channels because of use of
+            tryLocks() in the context's updating system.
+            In this case, if the the buffer has just been changed and we're
+            not quite ready yet then just output silence.
+
+            Reviewed by Chris Rogers.
+
+            * Modules/webaudio/AudioBufferSourceNode.cpp:
+            (WebCore::AudioBufferSourceNode::process):
+            (WebCore::AudioBufferSourceNode::renderFromBuffer):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r140879
+
+    2013-01-25  Raymond Toy  <rtoy@google.com>
+
+            Don't subtract too much from nonSilentFramesToProcess
+            https://bugs.webkit.org/show_bug.cgi?id=107966
+
+            Reviewed by Kenneth Russell.
+
+            No new tests.
+
+            * Modules/webaudio/AudioScheduledSourceNode.cpp:
+            (WebCore::AudioScheduledSourceNode::updateSchedulingInfo):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r140520
+
+    2013-01-23  Hajime Morrita  <morrita@google.com>
+
+            Invalidated SVG shadow tree should be always detached.
+            https://bugs.webkit.org/show_bug.cgi?id=107634
+
+            Reviewed by Ryosuke Niwa.
+
+            SVGUseElement::clearResourceReferences() uses removeAllChildren() for
+            clearing its shadow DOM, but this is wrong.
+            removeAllChildren() is designed for removing children of an out-of-document Node.
+            For efficiency, it skips a series of cleanup sequences like detach().
+
+            For removing SVG shadow tree which is in Document, removeChildren() should be used.
+            It does proper cleanup for the chilren.
+
+            Test: svg/custom/use-invalidate-click-crash.xhtml
+
+            * svg/SVGUseElement.cpp:
+            (WebCore::SVGUseElement::clearResourceReferences):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r140101
+
+    2013-01-17  Rafael Weinstein  <rafaelw@chromium.org>
+
+            Ensure the parser adopts foster-parented children into the document of their parent.
+            https://bugs.webkit.org/show_bug.cgi?id=107023
+
+            Reviewed by Adam Barth.
+
+            Tests: fast/parser/foster-parent-adopted.html
+                   fast/parser/foster-parent-adopted2.html
+
+            * html/parser/HTMLConstructionSite.cpp:
+            (WebCore::HTMLConstructionSite::insertTextNode):
+            (WebCore::HTMLConstructionSite::fosterParent):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r140069
+
+    2013-01-17  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-use-after-free in WebCore::RenderBlock::checkFloatsInCleanLine
+            https://bugs.webkit.org/show_bug.cgi?id=90802
+
+            Reviewed by Julien Chaffraix.
+
+            Test: fast/multicol/float-not-removed-crash.html
+
+            * rendering/RenderBoxModelObject.cpp:
+            (WebCore::RenderBoxModelObject::moveChildrenTo):
+            1. When fullRemoveInsert is True, make sure to clear the
+            floating objects from our list (similar to positioned objects).
+            Our children are getting moved to another block and we won't
+            get notified when they are going away.
+            2. Remove the redundant hasPositionedObjects check since it
+            is already done inside removePositionedObjects.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r139788
+
+    2013-01-15  Elliott Sprehn  <esprehn@chromium.org>
+
+            Heap-use-after-free in WebCore::RenderObject::willBeRemovedFromTree
+            https://bugs.webkit.org/show_bug.cgi?id=106384
+
+            Reviewed by Abhishek Arya.
+
+            Always walk up from beforeChild until the parent() is the owner of the
+            child list, otherwise we can end up in situations where
+            newChild->parent() == owner but newChild->nextSibling()->parent() != owner
+            which is a recipe for security bugs. Previously we only walked up through
+            anonymous blocks, but missed anonymous inline blocks like those generated
+            by <ruby>.
+
+            Test: fast/css-generated-content/bug-106384.html
+
+            * rendering/RenderObjectChildList.cpp:
+            (WebCore::RenderObjectChildList::insertChildNode):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r139551
+
+    2013-01-12  Gavin Peters  <gavinp@chromium.org>
+
+            Regression(r119759): Heap-use-after-free in webkit_glue::WebURLLoaderImpl::Context::OnReceivedResponse
+            https://bugs.webkit.org/show_bug.cgi?id=103563
+
+            A subresource could receive a body on a 404 if its call to CachedResource::error() resulted in a nested message loop.
+            That caused a crash when data was received, as the Subresource was in the Finished state already. Now when receiving
+            data we ignore these bodies, avoiding the crash.
+
+            Reviewed by Nate Chapin.
+
+            No new tests in WebKit, since it required a nested message loop which isn't present in chromium DumpRender tree.
+            There's a Chrome side browser test, see https://codereview.chromium.org/11778083/
+
+            * loader/SubresourceLoader.cpp:
+            (WebCore::SubresourceLoader::checkForHTTPStatusCodeError):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r139457
+
+    2013-01-11  Florin Malita  <fmalita@chromium.org>
+
+            [SVG] Suppress resource rebuilding for unattached and shadow elements
+            https://bugs.webkit.org/show_bug.cgi?id=106664
+
+            Reviewed by Dirk Schulze.
+
+            SVGStyledElement::buildPendingResourcesIfNeeded() can be called while cloning a subtree
+            (as nodes are inserted into the clone, while still detached) or when elements are inserted
+            into the shadow tree. Both of these cases are problematic for SVGUseElement and can trigger
+            indirect recursion in SVGUseElement::buildPendingResource.
+
+            Since shadow and !inDocument() nodes are of no interest to ID dependents (they cannot be
+            found by ID in the document), the patch short-circuits buildPendingResource() for these
+            cases.
+
+            Test: svg/custom/use-rebuild-resources-crash.svg
+
+            * svg/SVGStyledElement.cpp:
+            (WebCore::SVGStyledElement::buildPendingResourcesIfNeeded):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138994
+
+    2013-01-07  Justin Novosad  <junov@google.com>
+
+            Fixing memory read after free in CanvasRenderingContext2D::accessFont
+            https://bugs.webkit.org/show_bug.cgi?id=106244
+
+            Reviewed by Abhishek Arya.
+
+            Using a temporary String object to hold ref count on string that is
+            passed by reference in CanvasRenderingContext2D::accessFont.
+
+            Test: fast/canvas/canvas-measureText.html
+
+            * html/canvas/CanvasRenderingContext2D.cpp:
+            (WebCore::CanvasRenderingContext2D::accessFont):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138926
+
+    2013-01-06  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-use-after-free in DocumentLoader::stopLoading
+            https://bugs.webkit.org/show_bug.cgi?id=103656
+
+            Reviewed by Eric Seidel.
+
+            Test: fast/dom/ready-state-change-crash.html
+
+            * html/parser/HTMLDocumentParser.cpp:
+            (WebCore::HTMLDocumentParser::prepareToStopParsing): Bail out
+            if the parser is detached due to mutation event.
+            * loader/DocumentLoader.cpp:
+            (WebCore::DocumentLoader::stopLoading): Move the protectors for
+            frame and document loader to the start of the function. Call to
+            m_frame->loader()->stopLoading() can change document ready state
+            and fire mutation event which might blow the document loader from
+            underneath.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138918
+
+    2013-01-06  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-use-after-free in WebCore::Document::implicitClose
+            https://bugs.webkit.org/show_bug.cgi?id=105655
+
+            Reviewed by Eric Seidel.
+
+            Test: fast/dom/window-load-crash.html
+
+            * dom/Document.cpp:
+            (WebCore::Document::implicitClose): RefPtr protect |this| document since it
+            can be destroyed in the dispatchWindowLoadEvent call.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138863
+
+    2013-01-04  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-use-after-free in WebCore::XMLDocumentParser::doEnd
+            https://bugs.webkit.org/show_bug.cgi?id=100152
+
+            Reviewed by Adam Barth.
+
+            XMLDocumentParser can be blown away inside document()->styleResolverChanged()
+            call. Protect it with a local RefPtr in Document::explitClose.    
+
+            No new tests. The site specific dependencies are hard to minimize.
+
+            * dom/Document.cpp:
+            (WebCore::Document::explicitClose): RefPtr m_parser into a local, since
+            it can be detached and nulled out in DocumentWriter::end().
+            * xml/parser/XMLDocumentParser.cpp:
+            (WebCore::XMLDocumentParser::end): Bail out when we are detached.
+            * xml/parser/XMLDocumentParserLibxml2.cpp:
+            (WebCore::XMLDocumentParser::doEnd): Bail out when we are detached.
+            * xml/parser/XMLDocumentParserQt.cpp:
+            (WebCore::XMLDocumentParser::doEnd): Bail out when we are detached.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138850
+
+    2013-01-04  Abhishek Arya  <inferno@chromium.org>
+
+            Crash in WebCore::RenderBlock::willBeDestroyed
+            https://bugs.webkit.org/show_bug.cgi?id=103455
+
+            Reviewed by Eric Seidel.
+
+            It is not required to set beforeChild to :after child since DOM is
+            now pseudo element aware. See trac.webkit.org/changeset/137336. We
+            were incorrectly placing the inline continuation before the :after
+            content.       
+
+            Test: fast/multicol/continuation-crash.html
+
+            * rendering/RenderBlock.cpp:
+            (WebCore::RenderBlock::addChildIgnoringAnonymousColumnBlocks): remove beforeChild
+            setting to afterPseudoElementRenderer.
+            * rendering/RenderRuby.cpp:
+            (WebCore::RenderRubyAsInline::addChild): add missing beforeChild argument.
+            setting to afterPseudoElementRenderer.
+            (WebCore::RenderRubyAsBlock::addChild): add missing beforeChild argument.
+            * rendering/RenderTable.cpp:
+            (WebCore::RenderTable::addChild): remove beforeChild
+            setting to afterPseudoElementRenderer.
+            * rendering/RenderTableRow.cpp:
+            (WebCore::RenderTableRow::addChild): remove beforeChild
+            setting to afterPseudoElementRenderer.
+            * rendering/RenderTableSection.cpp:
+            (WebCore::RenderTableSection::addChild): remove beforeChild
+            setting to afterPseudoElementRenderer.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138812
+
+    2013-01-04  John Mellor  <johnme@chromium.org>
+
+            Early out from FontCache::releaseFontData if cached font data not found.
+            https://bugs.webkit.org/show_bug.cgi?id=106104
+
+            Reviewed by Abhishek Arya.
+
+            No tests, as no change in behavior.
+
+            * platform/graphics/FontCache.cpp:
+            (WebCore::FontCache::releaseFontData):
+
+                Early out in release builds if cached font data not found.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138657
+
+    2013-01-02  Abhishek Arya  <inferno@chromium.org>
+
+            Crash in WebCore::Element::cloneElementWithoutChildren.
+            https://bugs.webkit.org/show_bug.cgi?id=105949
+
+            Reviewed by Ryosuke Niwa.
+
+            RefPtr |ancestors| vector since its elements can be destroyed from mutation events
+            fired in CompositeEditCommand::appendNode. 
+
+            No new tests. The testcase relies on recursive DOM mutations and does not minimize.
+
+            * editing/InsertParagraphSeparatorCommand.cpp:
+            (WebCore::InsertParagraphSeparatorCommand::getAncestorsInsideBlock):
+            (WebCore::InsertParagraphSeparatorCommand::cloneHierarchyUnderNewBlock):
+            (WebCore::InsertParagraphSeparatorCommand::doApply):
+            * editing/InsertParagraphSeparatorCommand.h:
+            (InsertParagraphSeparatorCommand):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r138316
+
+    2012-12-20  Stephen Chenney  <schenney@chromium.org>
+
+            SVG: <altglpyh> for a surrogate pair character in a ligature fails
+            https://bugs.webkit.org/show_bug.cgi?id=102969
+
+            Reviewed by Dirk Schulze.
+
+            There are two issues with SVG <altglyph> tags applied to surrogate
+            fonts, particularly when mixed with non-standard forms (arabic,
+            vertical, etc.).
+
+            First, there is an assertion that is invalid when an alt glyph is
+            substituted for the surrogate, because the text chunk that is consumed
+            by an alt glyph is the entire run, whereas we assert that a
+            surrogate's chunk is length 2 regardless. That assertion has been
+            removed.
+
+            Second, when an arabic character or some other characters requiring a
+            special form appears before the surrogate pair character inside the alt
+            glyph tag, we reject the alt glyph because it is not compatible with the form.
+            However, when we process the next character - the surrogate pair - we
+            do accept the alt glyph. This breaks all the indexes because we have
+            already consumed part of the run that is now considered the alt glyph.
+            Chaos ensues. This patch forces us to always accept alt glyph
+            characters (assuming we have some glyph to draw). This better matches
+            the intent of the spec - if someone specifies an alt glyph they are
+            explicitly stating which glyph they want used. We should not argue
+            with the content author.
+
+            Tests: svg/text/alt-glyph-for-surrogate-pair-expected.svg
+                   svg/text/alt-glyph-for-surrogate-pair.svg
+
+            * rendering/svg/SVGTextLayoutEngine.cpp:
+            (WebCore::SVGTextLayoutEngine::layoutTextOnLineOrPath): Fix some poor code.
+            * rendering/svg/SVGTextMetricsBuilder.cpp:
+            (WebCore::SVGTextMetricsBuilder::advanceSimpleText): Remove an assert that is not always valid.
+            * svg/SVGFontData.cpp:
+            (WebCore::SVGFontData::applySVGGlyphSelection): Always return an altGlyph when found. Do not check it compatibility.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r137464
+
+    2012-12-12  Alexander Pavlov  <apavlov@chromium.org>
+
+            Web Inspector: [Crash] Clear cached stylesheet rules in InspectorStyleSheet::deleteRule()
+            https://bugs.webkit.org/show_bug.cgi?id=104806
+
+            Reviewed by Vsevolod Vlasov.
+
+            Cached rules (m_flatRules) should get cleared whenever a rule is deleted.
+
+            Test: inspector/styles/undo-add-rule-crash.html
+
+            * inspector/InspectorStyleSheet.cpp:
+            (WebCore::InspectorStyleSheet::deleteRule):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136560
+
+    2012-12-04  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-use-after-free in WebCore::StyleCachedImageSet::cssValue
+            https://bugs.webkit.org/show_bug.cgi?id=100621
+
+            Reviewed by Eric Seidel.
+
+            r115639 fixed a memory leak caused by reference cycle between StyleCachedImageSet
+            and its owner CSSImageSetValue. The fix caused StyleCachedImageSet to maintain
+            a weak pointer to CSSImageSetValue. This patch makes sure that the weak pointer
+            is cleared when CSSImageSetValue is going away.
+
+            Test: fast/css/image-set-value-not-removed-crash.html
+
+            * css/CSSImageSetValue.cpp:
+            (WebCore::CSSImageSetValue::~CSSImageSetValue):
+            * rendering/style/StyleCachedImageSet.h:
+            (WebCore::StyleCachedImageSet::clearImageSetValue):
+            (StyleCachedImageSet):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136558
+
+    2012-12-04  Abhishek Arya  <inferno@chromium.org>
+
+            Crash in CachedResource::checkNotify due to -webkit-crossfade.
+            https://bugs.webkit.org/show_bug.cgi?id=98068
+
+            Reviewed by Nate Chapin.
+
+            Make sure to not re-add the same client again for |m_cachedFromImage|
+            and |m_cachedToImage|. This would otherwise cause the CSSCrossfadeValue
+            client to not get removed from its cached image resource (when it is
+            going away).
+
+            Test: fast/images/crossfade-client-not-removed-crash.html
+
+            * css/CSSCrossfadeValue.cpp:
+            (WebCore::CSSCrossfadeValue::loadSubimages):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136541
+
+    2012-12-04  Florin Malita  <fmalita@chromium.org>
+
+            Stale SVGUseElement reference in CachedResource::checkNotify()
+            https://bugs.webkit.org/show_bug.cgi?id=104004
+
+            Reviewed by Eric Seidel.
+
+            SVGUseElement tracks one CachedSVGDocument at a time (for external references), but when
+            the href attribute is updated it fails to unregister with the current CachedSVGDocument
+            and only updates its CachedSVGDocument with the new instance. This leaves an untracked
+            reference with the original CachedSVGDocument.
+
+            The patch adds the missing removeClient() call on href change, and encapsulates the
+            CachedSVGDocument manipulation in a helper method which handles the necessary cleanup.
+
+            Test: svg/custom/use-href-update-crash.svg
+
+            * svg/SVGUseElement.cpp:
+            (WebCore::SVGUseElement::~SVGUseElement):
+            (WebCore::SVGUseElement::svgAttributeChanged):
+            (WebCore::SVGUseElement::setCachedDocument):
+            (WebCore):
+            * svg/SVGUseElement.h:
+            (SVGUseElement):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136253
+
+    2012-11-30  Abhishek Arya  <inferno@chromium.org>
+
+            Crash due to intruding float not removed after writing mode changed.
+            https://bugs.webkit.org/show_bug.cgi?id=100149
+
+            Reviewed by Levi Weintraub.
+
+            When RenderView writing mode changes, make sure to mark all descendants
+            with floats for layout.
+
+            Test: fast/block/float/intruding-float-not-removed-writing-mode.xhtml
+
+            * rendering/RenderBox.cpp:
+            (WebCore::RenderBox::styleDidChange):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136074
+
+    2012-11-28  Kenichi Ishibashi  <bashi@chromium.org>
+
+            StyleResolver should not set NaN to font size
+            https://bugs.webkit.org/show_bug.cgi?id=99506
+
+            Reviewed by Abhishek Arya.
+
+            fixedScaleFactor could be NaN since settings->defaultFixedFontSize()
+            and settings->defaultFontSize() are zero in some case. This turns
+            out setting NaN to font size. Add a zero checks so that
+            fixedScaleFactor won't be NaN.
+
+            Test: fast/css/font-size-nan.html
+
+            * css/StyleResolver.cpp:
+            (WebCore::StyleResolver::checkForGenericFamilyChange):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136061
+
+    2012-11-28  Tom Sepez  <tsepez@chromium.org>
+
+            XSSAuditor bypass with script src=data: URL ending in <!--
+            https://bugs.webkit.org/show_bug.cgi?id=103548
+
+            Reviewed by Adam Barth.
+
+            This fixes an additional case where characters from the page itself are
+            included with the snippet to match against the reflected vector, and the
+            JS remains legitimate because of a <!--- comment. Truncate the snippet at
+            such a comment.
+
+            Test: http/tests/security/xssAuditor/script-tag-with-source-data-url3.html
+
+            * html/parser/XSSAuditor.cpp:
+            (WebCore::XSSAuditor::decodedSnippetForAttribute):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r136060
+
+    2012-11-28  Abhishek Arya  <inferno@chromium.org>
+
+            Heap-use-after-free in WebCore::RenderLayerModelObject::hasSelfPaintingLayer
+            https://bugs.webkit.org/show_bug.cgi?id=101970
+
+            Reviewed by David Hyatt.
+
+            RenderInline::splitFlow and RenderBlock::splitFlow re-use |pre|
+            block in some cases. In those cases, |pre| might hold floating objects
+            and those floating descendants might get moved to |post| block. If
+            the |pre| block does not get a layout later, then the floating
+            descendant will never get removed since it is now part of |post|
+            ancestor chain. We don't want failing-to-layout bugs turned into
+            security bugs and hence clear floating objects list since we expect
+            it to be rebuilt in subsequent layout.
+
+            Test: fast/block/float/float-not-removed-from-pre-block.html
+
+            * rendering/RenderBlock.cpp:
+            (WebCore::RenderBlock::splitFlow): Call removeFloatingObjects on |pre| block.
+            (WebCore::RenderBlock::removeFloatingObjects): Clear all floating objects from our list.
+            (WebCore):
+            * rendering/RenderBlock.h: 
+            (RenderBlock):
+            * rendering/RenderInline.cpp:
+            (WebCore::RenderInline::splitFlow): Call removeFloatingObjects on |pre| block.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r135719
+
+    2012-11-26  Florin Malita  <fmalita@chromium.org>
+
+            RenderSVGResourceContainer does not clear cached data on removal
+            https://bugs.webkit.org/show_bug.cgi?id=102620
+
+            Reviewed by Dirk Schulze.
+
+            RenderSVGResourceContainer::removeClient needs to also remove the client from specialized
+            caches, otherwise we can end up with stale references.
+
+            Test: svg/custom/stale-resource-data-crash.svg
+
+            * rendering/svg/RenderSVGResourceContainer.cpp:
+            (WebCore::RenderSVGResourceContainer::removeClient):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r135478
+
+    2012-11-21  Cosmin Truta  <ctruta@rim.com>
+
+            Numeric identifiers of events should not be globally sequential
+            https://bugs.webkit.org/show_bug.cgi?id=102244
+
+            Reviewed by Alexey Proskuryakov.
+
+            The functions setTimeout, setInterval and navigator.geolocation.watchPosition
+            are currently returning values that are unique across all JavaScript execution
+            contexts, due to their dependency on global variables.
+            Such a guarantee is unnecessarily strong. In this patch, we constrain uniqueness
+            to these functions' own script execution context only.
+
+            Tests: fast/dom/Geolocation/watchPosition-unique.html
+                   fast/dom/Window/setTimeout-setInterval-unique.html
+
+            * Modules/geolocation/Geolocation.cpp:
+            (WebCore): Remove firstAvailableWatchId.
+            (WebCore::Geolocation::watchPosition): Get new watchID from script execution context.
+            (WebCore::Geolocation::clearWatch): Invalid watchID means less than or equal to 0.
+            * Modules/geolocation/Geolocation.h:
+            (Geolocation): Renamed the argument of Geolocation::clearWatch to WatchID.
+            * dom/ScriptExecutionContext.cpp:
+            (WebCore::ScriptExecutionContext::ScriptExecutionContext): Update initialization.
+            (WebCore::ScriptExecutionContext::newUniqueID): Add.
+            * dom/ScriptExecutionContext.h:
+            (ScriptExecutionContext): Add m_sequentialID.
+            (WebCore::ScriptExecutionContext::addTimeout): Inline.
+            (WebCore::ScriptExecutionContext::removeTimeout): Inline.
+            (WebCore::ScriptExecutionContext::findTimeout): Inline.
+            * page/DOMTimer.cpp:
+            (WebCore): Remove timeoutId.
+            (WebCore::DOMTimer::DOMTimer): Get new timeoutId from script execution context.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r135303
+
+    2012-11-20  Abhishek Arya  <inferno@chromium.org>
+
+            Crash in FrameLoader::stopLoading.
+            https://bugs.webkit.org/show_bug.cgi?id=99504
+
+            Reviewed by Nate Chapin.
+
+            Frame can be blown away in unload event handler. Need
+            to protect it with a RefPtr.
+
+            Test: fast/frames/frame-unload-crash2.html
+
+            * loader/FrameLoader.cpp:
+            (WebCore::FrameLoader::commitProvisionalLoad):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r135299
+
+    2012-11-20  Tom Sepez  <tsepez@chromium.org>
+
+            XSSAuditor::decodedSnippetForJavaScript stopping when comma encountered.
+            https://bugs.webkit.org/show_bug.cgi?id=102587
+
+            Reviewed by Adam Barth.
+
+            Rather than returning an empty fragment, continue processing the body
+            of a script tag when the decoded fragment reduces to nothing.
+
+            Test: http/tests/security/xssAuditor/script-tag-with-actual-comma.html
+
+            * html/parser/XSSAuditor.cpp:
+            (WebCore::XSSAuditor::decodedSnippetForJavaScript):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r135193
+
+    2012-11-19  Abhishek Arya  <inferno@chromium.org>
+
+            Crash in ApplyStyleCommand::cleanupUnstyledAppleStyleSpans.
+            https://bugs.webkit.org/show_bug.cgi?id=100150
+
+            Reviewed by Ryosuke Niwa.
+
+            RefPtr startDummySpanAncestor and endDummySpanAncestor since
+            they can go away inside fixRangeAndApplyInlineStyle call.
+
+            Test: editing/style/apply-style-crash.html
+
+            * editing/ApplyStyleCommand.cpp:
+            (WebCore::ApplyStyleCommand::applyInlineStyle):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r133717
+
+    2012-11-06  Ken Buchanan  <kenrb@chromium.org>
+
+            Crash due to column span under button element
+            https://bugs.webkit.org/show_bug.cgi?id=101402
+
+            Reviewed by Abhishek Arya.
+
+            When there is a column-spanning child of a RenderButton
+            splitBlocks() must split the RenderButton as well as its
+            only permitted direct child, the anonymous block referenced
+            by m_inner. A crash was occurring because splitBlocks()
+            calls addChildIgnoringAnonymousColumnBlocks() to add the
+            cloned m_inner to the cloned RenderButton, which meant the
+            m_inner for the cloned RenderButton was not being set even
+            though a child was being added. This violates state
+            assumptions in the RenderButton code.
+
+            This patch prevents any descendants of RenderButton from
+            spanning columns. Also, it adds a precautionary check in
+            RenderButton::removeChild() to mitigate problems if similar
+            state problems are found in future.
+
+            * rendering/RenderBlock.cpp:
+            (WebCore::RenderBlock::containingColumnsBlock):
+            * rendering/RenderButton.cpp:
+            (WebCore::RenderButton::removeChild):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r133686
+
+    2012-11-06  Simon Fraser  <simon.fraser@apple.com>
+
+            -webkit-background-clip:text produces artifacts when applied to the body and the browser is resized
+            https://bugs.webkit.org/show_bug.cgi?id=89287
+
+            Reviewed by Beth Dakin.
+
+            If the body had -webkit-background-clip: text, we'd fail to paint
+            anything behind it, so would see garbage pixels.
+
+            Fix by having RenderView::paintBoxDecorations() check for a background-clip of "text"
+            on the renderer that paints the root background.
+
+            Added some new pixel tests for combinations of html and body transform
+            and backgrounds; earlier versions of the patch broke some of these tests.
+
+            Tests: fast/backgrounds/background-clip-text-on-body.html
+                   fast/backgrounds/transformed-body-background.html
+                   fast/backgrounds/transformed-body-html-background.html
+                   fast/backgrounds/transformed-html-body-background.html
+
+            * rendering/RenderView.cpp:
+            (WebCore::rendererObscuresBackground): Broke up the single condition
+            into early 'false' returns when possible. We need to also check whether
+            the renderer that actually paints the background (which might be the body)
+            will fill it; background-clip: text does not.
+            (WebCore::RenderView::paintBoxDecorations): Rather than checking firstChild(),
+            actually check the root renderer, so that we can reliably get to the renderer
+            that mains the root background.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r133155
+
+    2012-11-01  Stephen Chenney  <schenney@chromium.org>
+
+            SVG as an image may recreate the renderer on zoom
+            https://bugs.webkit.org/show_bug.cgi?id=99508
+
+            Reviewed by Abhishek Arya.
+
+            The SVGImage code, when SVG is used in <img> tags, caches the renderer
+            at the start of the painting method and re-uses the pointer at the end
+            of the method. However, when the page is zoomed the renderer may be
+            detached mid-method, thus leaving a stray pointer. The fix is to
+            re-fetch the pointer after the zooms.
+
+            Test: svg/as-image/img-zoom-svg-stylesheet.html
+
+            * svg/graphics/SVGImage.cpp:
+            (WebCore::SVGImage::drawSVGToImageBuffer): Re-fetch the renderer after
+            the zoom operations.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r132983
+
+    2012-10-30  Kent Tamura  <tkent@chromium.org>
+
+            Delaying 'change' and 'input' event dispatching during HTMLInputElement::setValue
+            https://bugs.webkit.org/show_bug.cgi?id=100772
+
+            Reviewed by Abhishek Arya.
+
+            'change' and 'input' events are asynchronous and not
+            cancelable. We can use ScopedEvent.
+
+            Test: fast/forms/range/range-type-change-onchange.html
+
+            * dom/Node.cpp:
+            (WebCore::Node::dispatchChangeEvent): Use dispatchScopedEvent.
+            (WebCore::Node::dispatchInputEvent): Ditto.
+            * html/HTMLInputElement.cpp:
+            (WebCore::HTMLInputElement::setValue):
+            Make a scope to delay event dispatching.
+            * html/RangeInputType.cpp:
+            (WebCore::RangeInputType::handleKeydownEvent): Ditto.
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r132462
+
+    2012-10-25  Alexander Pavlov  <apavlov@chromium.org>
+
+            Web Inspector: Improper out-of-order call on a rule that is being removed from the stylesheet.
+            https://bugs.webkit.org/show_bug.cgi?id=100357
+
+            Reviewed by Vsevolod Vlasov.
+
+            * inspector/InspectorStyleSheet.cpp:
+            (WebCore::InspectorStyleSheet::deleteRule):
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r132398
+
+    2012-10-24  Ami Fischman  <fischman@chromium.org>
+
+            call to setNeedsLayout during RenderVideo::paintReplaced
+            https://bugs.webkit.org/show_bug.cgi?id=100265
+
+            Reviewed by Eric Carlson.
+
+            Removed unnecessary call and added new defensive guards to catch erroneous setNeedsLayout() calls
+            during paints earlier (so the offending calls are in the emitted stacktrace).
+
+            No new tests - new defensive checks are triggered by existing tests.
+
+            * page/FrameView.cpp:
+            (WebCore::FrameView::paintContents): forbid setNeedsLayout() during painting
+            * rendering/RenderObject.cpp:
+            (WebCore):
+            (WebCore::RenderObject::SetLayoutNeededForbiddenScope::SetLayoutNeededForbiddenScope):
+            (WebCore::RenderObject::SetLayoutNeededForbiddenScope::~SetLayoutNeededForbiddenScope):
+            * rendering/RenderObject.h:
+            (RenderObject):
+            (SetLayoutNeededForbiddenScope): added helper class for forbidding setNeedsLayout() in a scope.
+            * rendering/RenderVideo.cpp:
+            (WebCore::RenderVideo::paintReplaced): drop the offending & unnecessary call to updatePlayer().
+
+2013-03-12  Lucas Forschler  <lforschler@apple.com>
+
+        Merge r131578
+
+    2012-10-17  Alexander Pavlov  <apavlov@chromium.org>
+
+            Web Inspector: Avoid style updates when retrieving the inline stylesheet text
+            https://bugs.webkit.org/show_bug.cgi?id=99576
+
+            Reviewed by Vsevolod Vlasov.
+
+            Avoid using innerText() to retrieve inline stylesheet text, which may result in style and layout updates.
+
+            * inspector/InspectorStyleSheet.cpp:
+            (WebCore::InspectorStyleSheet::inlineStyleSheetText):
+
+== Rolled over to ChangeLog-2013-03-12 ==
